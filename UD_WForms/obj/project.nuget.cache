@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "n6RpyH9ADDA=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Pc\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Pc\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\Pc\\.nuget\\packages\\npgsql\\9.0.4\\npgsql.9.0.4.nupkg.sha512",
+    "C:\\Users\\Pc\\.nuget\\packages\\system.data.datasetextensions\\4.5.0\\system.data.datasetextensions.4.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,193 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:mainform.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\models\\passenger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:models\\passenger.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\models\\airport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:models\\airport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\models\\flight.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:models\\flight.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:databasehelper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|c:\\users\\pc\\documents\\ud_airport\\ud_wforms\\databasecreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{96833679-E9EE-4AE7-9E57-D066616C05A0}|UD_WForms.csproj|solutionrelative:databasecreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 8,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Airport.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Airport.cs",
+              "RelativeDocumentMoniker": "Models\\Airport.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Airport.cs",
+              "RelativeToolTip": "Models\\Airport.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:49:12.71Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Ticket.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Ticket.cs",
+              "RelativeDocumentMoniker": "Models\\Ticket.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Ticket.cs",
+              "RelativeToolTip": "Models\\Ticket.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:46:59.415Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "MainForm.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.cs",
+              "RelativeToolTip": "MainForm.cs",
+              "ViewState": "AgIAAFAAAAAAAAAAAAAwwBAAAABSAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:21:37.945Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "DatabaseHelper.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\DatabaseHelper.cs",
+              "RelativeDocumentMoniker": "DatabaseHelper.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\DatabaseHelper.cs",
+              "RelativeToolTip": "DatabaseHelper.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T10:43:49.548Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.cs",
+              "RelativeDocumentMoniker": "MainForm.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "RelativeToolTip": "MainForm.cs [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T10:30:02.108Z",
+              "EditorCaption": " [\u041A\u043E\u043D\u0441\u0442\u0440\u0443\u043A\u0442\u043E\u0440]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Passenger.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Passenger.cs",
+              "RelativeDocumentMoniker": "Models\\Passenger.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Passenger.cs",
+              "RelativeToolTip": "Models\\Passenger.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:03:52.228Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T10:30:56.169Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainForm.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.Designer.cs",
+              "RelativeDocumentMoniker": "MainForm.Designer.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\MainForm.Designer.cs",
+              "RelativeToolTip": "MainForm.Designer.cs",
+              "ViewState": "AgIAAEsAAAAAAAAAAAAowGUAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:06:28.125Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "DatabaseCreator.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\DatabaseCreator.cs",
+              "RelativeDocumentMoniker": "DatabaseCreator.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\DatabaseCreator.cs",
+              "RelativeToolTip": "DatabaseCreator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAKoAAABNAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:41:32.8Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Flight.cs",
+              "DocumentMoniker": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Flight.cs",
+              "RelativeDocumentMoniker": "Models\\Flight.cs",
+              "ToolTip": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\Models\\Flight.cs",
+              "RelativeToolTip": "Models\\Flight.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-24T11:02:33.501Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
