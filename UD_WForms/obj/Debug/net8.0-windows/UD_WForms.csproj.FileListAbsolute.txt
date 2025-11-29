@@ -19,3 +19,4 @@ C:\Users\Pc\Documents\UD_Airport\UD_WForms\obj\Debug\net8.0-windows\refint\UD_WF
 C:\Users\Pc\Documents\UD_Airport\UD_WForms\obj\Debug\net8.0-windows\UD_WForms.pdb
 C:\Users\Pc\Documents\UD_Airport\UD_WForms\obj\Debug\net8.0-windows\UD_WForms.genruntimeconfig.cache
 C:\Users\Pc\Documents\UD_Airport\UD_WForms\obj\Debug\net8.0-windows\ref\UD_WForms.dll
+C:\Users\Pc\Documents\UD_Airport\UD_WForms\obj\Debug\net8.0-windows\UD_WForms.sourcelink.json

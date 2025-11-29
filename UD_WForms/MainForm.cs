@@ -1,113 +1,134 @@
-// MainForm.cs
-using System;
-using System.Data;
+Ôªøusing System;
 using System.Windows.Forms;
+using UD_WForms.Models.Database;
+using UD_WForms.Forms;
 
 namespace UD_WForms
 {
     public partial class MainForm : Form
     {
-        private DatabaseHelper db;
-
         public MainForm()
         {
             InitializeComponent();
-
-            // Õ‡ÒÚÓÈÍ‡ ÔÓ‰ÍÎ˛˜ÂÌËˇ - «¿Ã≈Õ»“≈ Õ¿ —¬Œ» ƒ¿ÕÕ€≈
-            db = new DatabaseHelper("localhost", "aviation_db", "postgres", "Frida");
-
-            LoadFlights();
-        }
-
-        private void LoadFlights()
-        {
-            string query = @"
-                SELECT 
-                    f.flight_id as ""ID"",
-                    f.flight_number as ""ÕÓÏÂ ÂÈÒ‡"",
-                    f.airline as ""¿‚Ë‡ÍÓÏÔ‡ÌËˇ"",
-                    dep.name as ""¿˝ÓÔÓÚ ‚˚ÎÂÚ‡"",
-                    arr.name as ""¿˝ÓÔÓÚ ÔËÎÂÚ‡"",
-                    TO_CHAR(f.departure_date, 'DD.MM.YYYY HH24:MI') as ""¬˚ÎÂÚ"",
-                    TO_CHAR(f.arrival_date, 'DD.MM.YYYY HH24:MI') as ""œËÎÂÚ"",
-                    f.flight_duration as ""¬ÂÏˇ ‚ ÔÛÚË"",
-                    f.status as ""—Ú‡ÚÛÒ"",
-                    (f.seats_economy + f.seats_business) as ""¬ÒÂ„Ó ÏÂÒÚ""
-                FROM flights f
-                JOIN airports dep ON f.departure_airport_id = dep.airport_id
-                JOIN airports arr ON f.arrival_airport_id = arr.airport_id
-                ORDER BY f.departure_date";
-
-            DataTable flights = db.ExecuteQuery(query);
-            dataGridViewFlights.DataSource = flights;
-
-            if (dataGridViewFlights.Columns.Count > 0)
+            // –ü—Ä–æ–≤–µ—Ä—è–µ–º –ø–æ–¥–∫–ª—é—á–µ–Ω–∏–µ –ø–µ—Ä–µ–¥ –∏–Ω–∏—Ü–∏–∞–ª–∏–∑–∞—Ü–∏–µ–π –ë–î
+            if (DatabaseInitializer.TestDatabaseConnection())
             {
-                dataGridViewFlights.Columns["ID"].Visible = false;
-            }
-        }
-
-        private void btnSearch_Click(object sender, EventArgs e)
-        {
-            string departure = txtDepartureCity.Text.Trim();
-            string arrival = txtArrivalCity.Text.Trim();
-            string date = dateTimePickerDeparture.Value.ToString("yyyy-MM-dd");
-
-            string query = $@"
-                SELECT 
-                    f.flight_id as ""ID"",
-                    f.flight_number as ""ÕÓÏÂ ÂÈÒ‡"",
-                    f.airline as ""¿‚Ë‡ÍÓÏÔ‡ÌËˇ"",
-                    dep.name as ""¿˝ÓÔÓÚ ‚˚ÎÂÚ‡"",
-                    arr.name as ""¿˝ÓÔÓÚ ÔËÎÂÚ‡"",
-                    TO_CHAR(f.departure_date, 'DD.MM.YYYY HH24:MI') as ""¬˚ÎÂÚ"",
-                    TO_CHAR(f.arrival_date, 'DD.MM.YYYY HH24:MI') as ""œËÎÂÚ"",
-                    f.flight_duration as ""¬ÂÏˇ ‚ ÔÛÚË"",
-                    f.status as ""—Ú‡ÚÛÒ"",
-                    (f.seats_economy + f.seats_business) as ""¬ÒÂ„Ó ÏÂÒÚ""
-                FROM flights f
-                JOIN airports dep ON f.departure_airport_id = dep.airport_id
-                JOIN airports arr ON f.arrival_airport_id = arr.airport_id
-                WHERE dep.city ILIKE '%{departure}%' 
-                AND arr.city ILIKE '%{arrival}%' 
-                AND DATE(f.departure_date) = '{date}'
-                ORDER BY f.departure_date";
-
-            DataTable flights = db.ExecuteQuery(query);
-            dataGridViewFlights.DataSource = flights;
-
-            if (dataGridViewFlights.Columns.Count > 0)
-            {
-                dataGridViewFlights.Columns["ID"].Visible = false;
-            }
-        }
-
-        private void btnBookTicket_Click(object sender, EventArgs e)
-        {
-            if (dataGridViewFlights.CurrentRow != null && dataGridViewFlights.CurrentRow.Cells["ID"].Value != null)
-            {
-                int flightId = Convert.ToInt32(dataGridViewFlights.CurrentRow.Cells["ID"].Value);
-                // «‰ÂÒ¸ ·Û‰ÂÚ ‚˚ÁÓ‚ ÙÓÏ˚ ·ÓÌËÓ‚‡ÌËˇ
-                MessageBox.Show($"¡ÓÌËÓ‚‡ÌËÂ ÂÈÒ‡ ID: {flightId}", "¡ÓÌËÓ‚‡ÌËÂ",
-                              MessageBoxButtons.OK, MessageBoxIcon.Information);
+                InitializeDatabase();
             }
             else
             {
-                MessageBox.Show("¬˚·ÂËÚÂ ÂÈÒ ‰Îˇ ·ÓÌËÓ‚‡ÌËˇ", "»ÌÙÓÏ‡ˆËˇ",
-                              MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // –ü–æ–∫–∞–∑—ã–≤–∞–µ–º —Ñ–æ—Ä–º—É –Ω–∞—Å—Ç—Ä–æ–π–∫–∏ –ø–æ–¥–∫–ª—é—á–µ–Ω–∏—è
+                var settingsForm = new ConnectionSettingsForm();
+                if (settingsForm.ShowDialog() == DialogResult.OK)
+                {
+                    if (DatabaseInitializer.TestDatabaseConnection())
+                    {
+                        InitializeDatabase();
+                    }
+                    else
+                    {
+                        MessageBox.Show("–ù–µ —É–¥–∞–ª–æ—Å—å –ø–æ–¥–∫–ª—é—á–∏—Ç—å—Å—è –∫ –±–∞–∑–µ –¥–∞–Ω–Ω—ã—Ö. –ü—Ä–∏–ª–æ–∂–µ–Ω–∏–µ –±—É–¥–µ—Ç –∑–∞–∫—Ä—ã—Ç–æ.", "–û—à–∏–±–∫–∞",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Exit();
+                    }
+                }
+                else
+                {
+                    Application.Exit();
+                }
             }
         }
 
-        private void btnShowTickets_Click(object sender, EventArgs e)
+        private void InitializeDatabase()
         {
-            // «‰ÂÒ¸ ·Û‰ÂÚ ‚˚ÁÓ‚ ÙÓÏ˚ ÔÓÒÏÓÚ‡ ·ËÎÂÚÓ‚
-            MessageBox.Show("‘ÓÏ‡ ÔÓÒÏÓÚ‡ ·ËÎÂÚÓ‚", "¡ËÎÂÚ˚",
-                          MessageBoxButtons.OK, MessageBoxIcon.Information);
+            try
+            {
+                DatabaseInitializer.InitializeDatabase();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"–û—à–∏–±–∫–∞ –∏–Ω–∏—Ü–∏–∞–ª–∏–∑–∞—Ü–∏–∏ –±–∞–∑—ã –¥–∞–Ω–Ω—ã—Ö: {ex.Message}\n–ü—Ä–∏–ª–æ–∂–µ–Ω–∏–µ –±—É–¥–µ—Ç —Ä–∞–±–æ—Ç–∞—Ç—å –≤ –æ–≥—Ä–∞–Ω–∏—á–µ–Ω–Ω–æ–º —Ä–µ–∂–∏–º–µ.", "–û—à–∏–±–∫–∞",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
+        private void InitializeComponent()
         {
-            LoadFlights();
+            this.SuspendLayout();
+
+            // MainForm
+            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.Text = "–ê–≤–∏–∞–∫–∞—Å—Å–∞ - –ì–ª–∞–≤–Ω–∞—è";
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Menu Strip
+            MenuStrip mainMenu = new MenuStrip();
+            ToolStripMenuItem fileMenu = new ToolStripMenuItem("–§–∞–π–ª");
+            ToolStripMenuItem ticketsMenu = new ToolStripMenuItem("–ë–∏–ª–µ—Ç—ã");
+            ToolStripMenuItem passengersMenu = new ToolStripMenuItem("–ü–∞—Å—Å–∞–∂–∏—Ä—ã");
+            ToolStripMenuItem flightsMenu = new ToolStripMenuItem("–†–µ–π—Å—ã");
+            ToolStripMenuItem helpMenu = new ToolStripMenuItem("–°–ø—Ä–∞–≤–∫–∞");
+
+            // –≠–ª–µ–º–µ–Ω—Ç—ã –º–µ–Ω—é
+            ToolStripMenuItem exitItem = new ToolStripMenuItem("–í—ã—Ö–æ–¥");
+            exitItem.Click += (s, e) => Application.Exit();
+
+            ToolStripMenuItem ticketsItem = new ToolStripMenuItem("–£–ø—Ä–∞–≤–ª–µ–Ω–∏–µ –±–∏–ª–µ—Ç–∞–º–∏");
+            ticketsItem.Click += (s, e) => ShowTicketsForm();
+
+            ToolStripMenuItem passengersItem = new ToolStripMenuItem("–£–ø—Ä–∞–≤–ª–µ–Ω–∏–µ –ø–∞—Å—Å–∞–∂–∏—Ä–∞–º–∏");
+            passengersItem.Click += (s, e) => ShowPassengersForm();
+
+            ToolStripMenuItem flightsItem = new ToolStripMenuItem("–£–ø—Ä–∞–≤–ª–µ–Ω–∏–µ —Ä–µ–π—Å–∞–º–∏");
+            flightsItem.Click += (s, e) => ShowFlightsForm();
+
+            // –î–æ–±–∞–≤–ª–µ–Ω–∏–µ –≤ –º–µ–Ω—é
+            fileMenu.DropDownItems.Add(exitItem);
+            ticketsMenu.DropDownItems.Add(ticketsItem);
+            passengersMenu.DropDownItems.Add(passengersItem);
+            flightsMenu.DropDownItems.Add(flightsItem);
+
+            mainMenu.Items.AddRange(new ToolStripItem[] { fileMenu, ticketsMenu, passengersMenu, flightsMenu, helpMenu });
+            this.MainMenuStrip = mainMenu;
+            this.Controls.Add(mainMenu);
+
+            // Welcome Label
+            Label welcomeLabel = new Label();
+            welcomeLabel.Text = "–î–æ–±—Ä–æ –ø–æ–∂–∞–ª–æ–≤–∞—Ç—å –≤ —Å–∏—Å—Ç–µ–º—É –∞–≤–∏–∞–∫–∞—Å—Å—ã!\n\n–í—ã–±–µ—Ä–∏—Ç–µ —Ä–∞–∑–¥–µ–ª –≤ –º–µ–Ω—é –¥–ª—è —Ä–∞–±–æ—Ç—ã —Å –¥–∞–Ω–Ω—ã–º–∏.";
+            welcomeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular);
+            welcomeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            welcomeLabel.Dock = DockStyle.Fill;
+            this.Controls.Add(welcomeLabel);
+
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+            ToolStripMenuItem settingsItem = new ToolStripMenuItem("–ù–∞—Å—Ç—Ä–æ–π–∫–∏ –ë–î");
+            settingsItem.Click += (s, e) =>
+            {
+                var settingsForm = new ConnectionSettingsForm();
+                settingsForm.ShowDialog();
+            };
+            fileMenu.DropDownItems.Add(settingsItem);
         }
+
+        private void ShowTicketsForm()
+        {
+            var ticketsForm = new TicketsForm();
+            ticketsForm.ShowDialog();
+        }
+
+        private void ShowPassengersForm()
+        {
+            MessageBox.Show("–§–æ—Ä–º–∞ —É–ø—Ä–∞–≤–ª–µ–Ω–∏—è –ø–∞—Å—Å–∞–∂–∏—Ä–∞–º–∏ –±—É–¥–µ—Ç —Ä–µ–∞–ª–∏–∑–æ–≤–∞–Ω–∞ –ø–æ–∑–∂–µ", "–ò–Ω—Ñ–æ—Ä–º–∞—Ü–∏—è",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ShowFlightsForm()
+        {
+            MessageBox.Show("–§–æ—Ä–º–∞ —É–ø—Ä–∞–≤–ª–µ–Ω–∏—è —Ä–µ–π—Å–∞–º–∏ –±—É–¥–µ—Ç —Ä–µ–∞–ª–∏–∑–æ–≤–∞–Ω–∞ –ø–æ–∑–∂–µ", "–ò–Ω—Ñ–æ—Ä–º–∞—Ü–∏—è",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
     }
 }

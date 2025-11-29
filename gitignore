@@ -1,0 +1,77 @@
+## Игнорирование файлов сборки и компиляции
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.resources
+*.application
+
+## Файлы пользовательских настроек и временные файлы
+*.user
+*.suo
+*.[Cc]ache
+*.vshost.*
+*.tmp
+*.temp
+
+## Файлы логирования и отладки
+*.log
+*.log*
+[Nn]log/
+logs/
+
+## Файлы пакетов NuGet
+packages/
+*.nupkg
+.nuget/
+NuGet.exe
+
+## Файлы проектов Visual Studio
+*.csproj.user
+*.vbproj.user
+*.sln.docstates
+_ReSharper.*
+*.resharper
+*.sln.ide
+
+## Файлы публикации
+[Pp]ublish/
+[Pp]ublishProfiles/
+*.pubxml
+
+## Файлы операционной системы
+Thumbs.db
+[Dd]esktop.ini
+*.lnk
+
+## ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ПО ТРЕБОВАНИЮ
+## Игнорирование текстовых и batch-файлов
+*.txt
+*.bat
+*.cmd
+
+## Файлы конфигурации (опционально - раскомментировать если нужно)
+# *.config
+
+## Резервные копии и временные файлы редакторов
+*~
+*.bak
+*.swp
+
+## Файлы пакетов (если используются)
+*.msi
+*.msm
+*.msp
+
+## Файлы анализа кода
+*.codeanalysis
+*.ruleset
+
+## Файлы покрытия тестами
+*.coverage
+*.coveragexml
+
+## Файлы метрик
+*.metrics.xml
