@@ -3,12 +3,18 @@ using System.Windows.Forms;
 using UD_WForms.Services;
 using UD_WForms.Models;
 using UD_WForms.Controls;
+using UD_WForms;
 
 namespace UD_WForms.Forms
 {
-    public partial class TicketsForm : Form
+    public partial class AirportsForm : Form
     {
-        private ITicketService _ticketService;
+        public void RefreshData()
+        {
+            LoadAirports();
+        }
+
+        private IAirportService _airportService;
         private DataGridView dataGridView;
         private TextBox txtSearch;
         private Button btnSearch;
@@ -16,21 +22,21 @@ namespace UD_WForms.Forms
         private Button btnRefresh;
         private Button btnClose;
 
-        public TicketsForm()
+        public AirportsForm()
         {
             InitializeComponent();
-            _ticketService = ServiceLocator.GetService<ITicketService>();
-            LoadTickets();
+            _airportService = new AirportService();
+            LoadAirports();
         }
 
         private void InitializeComponent()
         {
             this.SuspendLayout();
 
-            this.Text = "Управление билетами";
-            this.Size = new System.Drawing.Size(1000, 600);
+            this.Text = "Управление аэропортами";
+            this.Size = new System.Drawing.Size(900, 500);
             this.StartPosition = FormStartPosition.CenterParent;
-            this.MinimumSize = new System.Drawing.Size(800, 400);
+            this.MinimumSize = new System.Drawing.Size(700, 400);
 
             // Панель поиска
             Panel searchPanel = new Panel();
@@ -41,7 +47,7 @@ namespace UD_WForms.Forms
             txtSearch = new TextBox();
             txtSearch.Location = new System.Drawing.Point(10, 10);
             txtSearch.Size = new System.Drawing.Size(200, 20);
-            txtSearch.PlaceholderText = "Поиск по номеру билета, рейса...";
+            txtSearch.PlaceholderText = "Поиск по названию, коду IATA, городу...";
 
             btnSearch = new Button();
             btnSearch.Text = "Найти";
@@ -50,9 +56,9 @@ namespace UD_WForms.Forms
             btnSearch.Click += BtnSearch_Click;
 
             btnAdd = new Button();
-            btnAdd.Text = "Добавить билет";
+            btnAdd.Text = "Добавить аэропорт";
             btnAdd.Location = new System.Drawing.Point(310, 10);
-            btnAdd.Size = new System.Drawing.Size(120, 23);
+            btnAdd.Size = new System.Drawing.Size(140, 23);
             btnAdd.Click += BtnAdd_Click;
 
             searchPanel.Controls.AddRange(new Control[] { txtSearch, btnSearch, btnAdd });
@@ -76,7 +82,7 @@ namespace UD_WForms.Forms
             btnRefresh.Text = "Обновить";
             btnRefresh.Location = new System.Drawing.Point(10, 10);
             btnRefresh.Size = new System.Drawing.Size(80, 30);
-            btnRefresh.Click += (s, e) => LoadTickets();
+            btnRefresh.Click += (s, e) => LoadAirports();
 
             btnClose = new Button();
             btnClose.Text = "Закрыть";
@@ -90,17 +96,17 @@ namespace UD_WForms.Forms
             this.ResumeLayout(false);
         }
 
-        private void LoadTickets()
+        private void LoadAirports()
         {
             try
             {
-                var tickets = _ticketService.GetAllTickets();
-                dataGridView.DataSource = tickets;
+                var airports = _airportService.GetAllAirports();
+                dataGridView.DataSource = airports;
                 FormatDataGridView();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки билетов: {ex.Message}", "Ошибка",
+                MessageBox.Show($"Ошибка загрузки аэропортов: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -109,14 +115,11 @@ namespace UD_WForms.Forms
         {
             if (dataGridView.Columns.Count > 0)
             {
-                dataGridView.Columns["RecordNumber"].HeaderText = "№ записи";
-                dataGridView.Columns["TicketNumber"].HeaderText = "№ билета";
-                dataGridView.Columns["FlightNumber"].HeaderText = "№ рейса";
-                dataGridView.Columns["PassengerId"].HeaderText = "ID пассажира";
-                dataGridView.Columns["Class"].HeaderText = "Класс";
-                dataGridView.Columns["Status"].HeaderText = "Статус";
-                dataGridView.Columns["Luggage"].HeaderText = "Багаж";
-                dataGridView.Columns["Price"].HeaderText = "Стоимость";
+                dataGridView.Columns["AirportId"].HeaderText = "ID";
+                dataGridView.Columns["Name"].HeaderText = "Название аэропорта";
+                dataGridView.Columns["IATACode"].HeaderText = "Код IATA";
+                dataGridView.Columns["Country"].HeaderText = "Страна";
+                dataGridView.Columns["City"].HeaderText = "Город";
             }
         }
 
@@ -124,8 +127,8 @@ namespace UD_WForms.Forms
         {
             try
             {
-                var tickets = _ticketService.SearchTickets(txtSearch.Text);
-                dataGridView.DataSource = tickets;
+                var airports = _airportService.SearchAirports(txtSearch.Text);
+                dataGridView.DataSource = airports;
                 FormatDataGridView();
             }
             catch (Exception ex)
@@ -137,7 +140,7 @@ namespace UD_WForms.Forms
 
         private void BtnAdd_Click(object sender, EventArgs e)
         {
-            ShowTicketForm();
+            ShowAirportForm();
         }
 
         private void DataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -146,36 +149,41 @@ namespace UD_WForms.Forms
 
             if (dataGridView.Columns[e.ColumnIndex].Name == "Edit")
             {
-                int recordNumber = (int)dataGridView.Rows[e.RowIndex].Cells["RecordNumber"].Value;
-                ShowTicketForm(recordNumber);
+                int airportId = (int)dataGridView.Rows[e.RowIndex].Cells["AirportId"].Value;
+                ShowAirportForm(airportId);
             }
             else if (dataGridView.Columns[e.ColumnIndex].Name == "Delete")
             {
-                int recordNumber = (int)dataGridView.Rows[e.RowIndex].Cells["RecordNumber"].Value;
-                DeleteTicket(recordNumber);
+                int airportId = (int)dataGridView.Rows[e.RowIndex].Cells["AirportId"].Value;
+                DeleteAirport(airportId);
             }
         }
 
-        private void ShowTicketForm(int recordNumber = 0)
+        private void ShowAirportForm(int airportId = 0)
         {
-            MessageBox.Show("Форма редактирования билета будет реализована позже", "Информация",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using (var form = new AirportForm(airportId, _airportService))
+            {
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    LoadAirports();
+                }
+            }
         }
 
-        private void DeleteTicket(int recordNumber)
+        private void DeleteAirport(int airportId)
         {
-            var result = MessageBox.Show("Вы уверены, что хотите удалить этот билет?",
+            var result = MessageBox.Show("Вы уверены, что хотите удалить этот аэропорт?",
                 "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
                 try
                 {
-                    if (_ticketService.DeleteTicket(recordNumber))
+                    if (_airportService.DeleteAirport(airportId))
                     {
-                        MessageBox.Show("Билет успешно удален", "Успех",
+                        MessageBox.Show("Аэропорт успешно удален", "Успех",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        LoadTickets();
+                        LoadAirports();
                     }
                 }
                 catch (Exception ex)
@@ -184,11 +192,6 @@ namespace UD_WForms.Forms
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-        }
-
-        public void RefreshData()
-        {
-            LoadTickets();
         }
     }
 }
