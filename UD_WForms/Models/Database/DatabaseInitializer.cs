@@ -22,8 +22,8 @@ namespace UD_WForms.Models.Database
                 // Затем создаем таблицы
                 CreateTables();
 
-                MessageBox.Show("База данных успешно инициализирована!", "Успех",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("База данных успешно инициализирована!", "Успех",
+                //MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -55,8 +55,8 @@ namespace UD_WForms.Models.Database
                         using (var createCmd = new NpgsqlCommand(createDbQuery, connection))
                         {
                             createCmd.ExecuteNonQuery();
-                            MessageBox.Show("База данных 'aviadb' создана успешно!", "Информация",
-                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            //MessageBox.Show("База данных 'aviadb' создана успешно!", "Информация",
+                                //MessageBoxButtons.OK, MessageBoxIcon.Information);
                             return true; // База была создана
                         }
                     }
@@ -72,8 +72,8 @@ namespace UD_WForms.Models.Database
                 try
                 {
                     connection.Open();
-                    MessageBox.Show("Подключение к базе данных aviadb установлено", "Информация",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Подключение к базе данных aviadb установлено", "Информация",
+                        //MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     // Создание таблицы Аэропорт
                     string createAirportTable = @"
@@ -134,8 +134,8 @@ namespace UD_WForms.Models.Database
                     // Добавляем тестовые данные, если таблицы пустые
                     InsertTestData(connection);
 
-                    MessageBox.Show("Все таблицы успешно созданы!", "Успех",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    //MessageBox.Show("Все таблицы успешно созданы!", "Успех",
+                        //MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
@@ -155,7 +155,7 @@ namespace UD_WForms.Models.Database
                     command.ExecuteNonQuery();
                     if (!string.IsNullOrEmpty(tableName))
                     {
-                        Console.WriteLine($"{tableName} создана/проверена успешно");
+                        //Console.WriteLine($"{tableName} создана/проверена успешно");
                     }
                 }
             }
@@ -255,8 +255,8 @@ namespace UD_WForms.Models.Database
                     }
                 }
 
-                MessageBox.Show("Тестовые данные успешно добавлены!", "Успех",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show("Тестовые данные успешно добавлены!", "Успех",
+                    //MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {

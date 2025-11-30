@@ -183,29 +183,10 @@ namespace UD_WForms
 
         private void ShowFlightsForm()
         {
-            try
-            {
-                // Проверяем, зарегистрирован ли сервис
-                if (!ServiceLocator.IsRegistered<IFlightService>())
-                {
-                    MessageBox.Show("Сервис рейсов не зарегистрирован", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                var flightsForm = new FlightsForm();
-                flightsForm.MdiParent = this;
-                flightsForm.WindowState = FormWindowState.Maximized;
-                flightsForm.Show();
-
-                MessageBox.Show("Форма рейсов успешно открыта", "Успех",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка открытия формы рейсов: {ex.Message}\n\n{ex.StackTrace}", "Ошибка",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            var flightsForm = new FlightsForm();
+            //flightsForm.MdiParent = this;
+            //flightsForm.WindowState = FormWindowState.Maximized;
+            flightsForm.Show();
         }
 
         private void ShowAirportsForm()
