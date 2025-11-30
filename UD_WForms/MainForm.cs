@@ -183,10 +183,32 @@ namespace UD_WForms
 
         private void ShowFlightsForm()
         {
-            var flightsForm = new FlightsForm();
-            //flightsForm.MdiParent = this;
-            //flightsForm.WindowState = FormWindowState.Maximized;
-            flightsForm.Show();
+            try
+            {
+                // Проверяем сервисы
+                if (!ServiceLocator.IsRegistered<IFlightService>() || !ServiceLocator.IsRegistered<IAirportService>())
+                {
+                    MessageBox.Show("Не все необходимые сервисы зарегистрированы", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                var flightsForm = new FlightsForm();
+                //flightsForm.MdiParent = this;
+                //flightsForm.WindowState = FormWindowState.Maximized;
+                flightsForm.Show();
+
+                // Проверяем, загрузились ли данные
+                if (flightsForm.IsHandleCreated)
+                {
+                    Console.WriteLine("Форма рейсов успешно создана");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка открытия формы рейсов: {ex.Message}\n\nStack trace: {ex.StackTrace}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void ShowAirportsForm()
@@ -232,6 +254,11 @@ namespace UD_WForms
 
             MessageBox.Show("Данные обновлены", "Обновление",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        private void ShowDebugFlightForm()
+        {
+            var debugForm = new DebugFlightForm();
+            debugForm.ShowDialog();
         }
     }
 }

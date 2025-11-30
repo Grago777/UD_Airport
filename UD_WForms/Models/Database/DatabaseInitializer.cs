@@ -111,6 +111,27 @@ namespace UD_WForms.Models.Database
                             BusinessSeats INTEGER NOT NULL,
                             Airline VARCHAR(50) NOT NULL
                         );";
+                    string checkFlightTable = @"
+                        DO $$
+                        BEGIN 
+                            IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'flight') THEN
+                                CREATE TABLE Flight (
+                                    FlightNumber VARCHAR(10) PRIMARY KEY,
+                                    FlightType VARCHAR(20) NOT NULL,
+                                    Aircraft VARCHAR(50) NOT NULL,
+                                    DepartureDate TIMESTAMP NOT NULL,
+                                    ArrivalDate TIMESTAMP NOT NULL,
+                                    FlightTime INTERVAL NOT NULL,
+                                    Status VARCHAR(20) NOT NULL,
+                                    DepartureAirportId INTEGER REFERENCES Airport(AirportId),
+                                    ArrivalAirportId INTEGER REFERENCES Airport(AirportId),
+                                    EconomySeats INTEGER NOT NULL,
+                                    BusinessSeats INTEGER NOT NULL,
+                                    Airline VARCHAR(50) NOT NULL
+                                 );
+                            END IF;
+                        END $$;";
+                     ExecuteNonQuery(connection, checkFlightTable);
 
                     // Создание таблицы Билет
                     string createTicketTable = @"

@@ -12,22 +12,14 @@ namespace UD_WForms.Forms
         private IAirportService _airportService;
         private Flight _flight;
         private bool _isEditMode;
-        private ComboBox cmbDepartureAirport;
-        private ComboBox cmbArrivalAirport;
-        private ComboBox cmbStatus;
-        private ComboBox cmbFlightType;
-        private DateTimePicker dtpDeparture;
-        private DateTimePicker dtpArrival;
-        private NumericUpDown numEconomySeats;
-        private NumericUpDown numBusinessSeats;
 
         public FlightForm(string flightNumber, IFlightService flightService, IAirportService airportService)
         {
-            InitializeComponent();
-            _flightService = flightService;
-            _airportService = airportService;
+            _flightService = flightService ?? throw new ArgumentNullException(nameof(flightService));
+            _airportService = airportService ?? throw new ArgumentNullException(nameof(airportService));
             _isEditMode = !string.IsNullOrEmpty(flightNumber);
 
+            // Инициализируем _flight ДО вызова InitializeComponent
             if (_isEditMode)
             {
                 LoadFlight(flightNumber);
@@ -48,120 +40,257 @@ namespace UD_WForms.Forms
                 };
             }
 
-            LoadAirports();
+            InitializeComponent();
         }
 
         private void InitializeComponent()
         {
             this.SuspendLayout();
 
-            this.Text = _isEditMode ? "Редактирование рейса" : "Добавление рейса";
-            this.Size = new System.Drawing.Size(500, 550);
+            this.Text = _isEditMode ? $"Редактирование рейса {_flight?.FlightNumber}" : "Добавление нового рейса";
+            this.Size = new System.Drawing.Size(500, 600);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.BackColor = System.Drawing.Color.White;
 
+            // Основной контейнер
+            Panel mainPanel = new Panel();
+            mainPanel.Dock = DockStyle.Fill;
+            mainPanel.Padding = new Padding(20);
+            mainPanel.AutoScroll = true;
+
+            int top = 10;
             int leftLabel = 10;
             int leftControl = 150;
-            int top = 20;
-            int spacing = 40;
+            int controlWidth = 250;
+            int spacing = 35;
 
-            // Номер рейса
+            // Заголовок
+            var lblTitle = new Label()
+            {
+                Text = _isEditMode ? "Редактирование рейса" : "Добавление нового рейса",
+                Left = 10,
+                Top = top,
+                Width = 400,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.Navy
+            };
+            top += 40;
+
+            // Номер рейса - с проверкой на null
             var lblFlightNumber = new Label() { Text = "Номер рейса:*", Left = leftLabel, Top = top, Width = 130 };
-            var txtFlightNumber = new TextBox() { Left = leftControl, Top = top, Width = 200, Enabled = !_isEditMode };
-            txtFlightNumber.Text = _flight.FlightNumber;
-
+            var txtFlightNumber = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _flight?.FlightNumber ?? GenerateFlightNumber(),
+                Enabled = !_isEditMode,
+                BackColor = _isEditMode ? System.Drawing.Color.LightGray : System.Drawing.Color.White
+            };
             top += spacing;
 
             // Тип рейса
             var lblFlightType = new Label() { Text = "Тип рейса:*", Left = leftLabel, Top = top, Width = 130 };
-            cmbFlightType = new ComboBox() { Left = leftControl, Top = top, Width = 200 };
+            var cmbFlightType = new ComboBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
             cmbFlightType.Items.AddRange(new string[] { "Регулярный", "Чартерный", "Грузовой" });
-            cmbFlightType.SelectedItem = _flight.FlightType;
-
+            cmbFlightType.SelectedItem = _flight?.FlightType ?? "Регулярный";
             top += spacing;
 
             // Самолет
             var lblAircraft = new Label() { Text = "Самолет:*", Left = leftLabel, Top = top, Width = 130 };
-            var txtAircraft = new TextBox() { Left = leftControl, Top = top, Width = 200 };
-            txtAircraft.Text = _isEditMode ? _flight.Aircraft : "Boeing 737";
-
+            var txtAircraft = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _flight?.Aircraft ?? "Boeing 737"
+            };
             top += spacing;
 
             // Авиакомпания
             var lblAirline = new Label() { Text = "Авиакомпания:*", Left = leftLabel, Top = top, Width = 130 };
-            var txtAirline = new TextBox() { Left = leftControl, Top = top, Width = 200 };
-            txtAirline.Text = _isEditMode ? _flight.Airline : "Аэрофлот";
-
+            var txtAirline = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _flight?.Airline ?? "Аэрофлот"
+            };
             top += spacing;
 
             // Аэропорт вылета
             var lblDepartureAirport = new Label() { Text = "Аэропорт вылета:*", Left = leftLabel, Top = top, Width = 130 };
-            cmbDepartureAirport = new ComboBox() { Left = leftControl, Top = top, Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
-
+            var cmbDepartureAirport = new ComboBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                DisplayMember = "DisplayText"
+            };
             top += spacing;
 
             // Аэропорт прибытия
             var lblArrivalAirport = new Label() { Text = "Аэропорт прибытия:*", Left = leftLabel, Top = top, Width = 130 };
-            cmbArrivalAirport = new ComboBox() { Left = leftControl, Top = top, Width = 250, DropDownStyle = ComboBoxStyle.DropDownList };
-
+            var cmbArrivalAirport = new ComboBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                DisplayMember = "DisplayText"
+            };
             top += spacing;
 
             // Дата и время вылета
             var lblDeparture = new Label() { Text = "Вылет:*", Left = leftLabel, Top = top, Width = 130 };
-            dtpDeparture = new DateTimePicker() { Left = leftControl, Top = top, Width = 200, Format = DateTimePickerFormat.Custom, CustomFormat = "dd.MM.yyyy HH:mm" };
-            dtpDeparture.Value = _flight.DepartureDate;
-
+            var dtpDeparture = new DateTimePicker()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = "dd.MM.yyyy HH:mm",
+                Value = _flight?.DepartureDate ?? DateTime.Now.AddHours(1),
+                ShowUpDown = true
+            };
             top += spacing;
 
             // Дата и время прибытия
             var lblArrival = new Label() { Text = "Прибытие:*", Left = leftLabel, Top = top, Width = 130 };
-            dtpArrival = new DateTimePicker() { Left = leftControl, Top = top, Width = 200, Format = DateTimePickerFormat.Custom, CustomFormat = "dd.MM.yyyy HH:mm" };
-            dtpArrival.Value = _flight.ArrivalDate;
-
+            var dtpArrival = new DateTimePicker()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Format = DateTimePickerFormat.Custom,
+                CustomFormat = "dd.MM.yyyy HH:mm",
+                Value = _flight?.ArrivalDate ?? DateTime.Now.AddHours(3),
+                ShowUpDown = true
+            };
             top += spacing;
 
             // Время полета
             var lblFlightTime = new Label() { Text = "Время полета:", Left = leftLabel, Top = top, Width = 130 };
-            var lblCalculatedTime = new Label() { Text = "00:00", Left = leftControl, Top = top, Width = 100 };
-            lblCalculatedTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Bold);
-
-            // Обновляем время при изменении дат
-            dtpDeparture.ValueChanged += (s, e) => UpdateFlightTime(lblCalculatedTime);
-            dtpArrival.ValueChanged += (s, e) => UpdateFlightTime(lblCalculatedTime);
-
+            var lblCalculatedTime = new Label()
+            {
+                Text = _flight?.FlightTime.ToString(@"hh\:mm") ?? "02:00",
+                Left = leftControl,
+                Top = top,
+                Width = 100,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.DarkBlue
+            };
             top += spacing;
 
             // Места эконом класса
             var lblEconomySeats = new Label() { Text = "Места эконом:*", Left = leftLabel, Top = top, Width = 130 };
-            numEconomySeats = new NumericUpDown() { Left = leftControl, Top = top, Width = 100, Minimum = 0, Maximum = 1000, Value = _flight.EconomySeats };
-
+            var numEconomySeats = new NumericUpDown()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = 100,
+                Minimum = 0,
+                Maximum = 1000,
+                Value = _flight?.EconomySeats ?? 150
+            };
             top += spacing;
 
             // Места бизнес класса
             var lblBusinessSeats = new Label() { Text = "Места бизнес:*", Left = leftLabel, Top = top, Width = 130 };
-            numBusinessSeats = new NumericUpDown() { Left = leftControl, Top = top, Width = 100, Minimum = 0, Maximum = 200, Value = _flight.BusinessSeats };
-
+            var numBusinessSeats = new NumericUpDown()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = 100,
+                Minimum = 0,
+                Maximum = 200,
+                Value = _flight?.BusinessSeats ?? 20
+            };
             top += spacing;
 
             // Статус
             var lblStatus = new Label() { Text = "Статус:*", Left = leftLabel, Top = top, Width = 130 };
-            cmbStatus = new ComboBox() { Left = leftControl, Top = top, Width = 200 };
+            var cmbStatus = new ComboBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
             cmbStatus.Items.AddRange(new string[] { "По расписанию", "Задержан", "Отменен", "Вылетел", "Прибыл" });
-            cmbStatus.SelectedItem = _flight.Status;
-
+            cmbStatus.SelectedItem = _flight?.Status ?? "По расписанию";
             top += 50;
 
             // Кнопки
-            var btnSave = new Button() { Text = "Сохранить", Left = leftControl, Top = top, Width = 80 };
-            var btnCancel = new Button() { Text = "Отмена", Left = leftControl + 90, Top = top, Width = 80 };
+            var btnSave = new Button()
+            {
+                Text = "💾 Сохранить",
+                Left = leftControl,
+                Top = top,
+                Width = 100,
+                BackColor = System.Drawing.Color.LightGreen
+            };
+            var btnCancel = new Button()
+            {
+                Text = "Отмена",
+                Left = leftControl + 110,
+                Top = top,
+                Width = 80
+            };
 
+            // Загрузка аэропортов
+            LoadAirports(cmbDepartureAirport, cmbArrivalAirport);
+
+            // Обновление времени полета
+            void UpdateFlightTime()
+            {
+                TimeSpan flightTime = dtpArrival.Value - dtpDeparture.Value;
+                if (flightTime.TotalMinutes > 0)
+                {
+                    lblCalculatedTime.Text = flightTime.ToString(@"hh\:mm");
+                    lblCalculatedTime.ForeColor = System.Drawing.Color.DarkGreen;
+                }
+                else
+                {
+                    lblCalculatedTime.Text = "00:00";
+                    lblCalculatedTime.ForeColor = System.Drawing.Color.Red;
+                }
+            }
+
+            dtpDeparture.ValueChanged += (s, e) => UpdateFlightTime();
+            dtpArrival.ValueChanged += (s, e) => UpdateFlightTime();
+
+            // Инициализируем время полета
+            UpdateFlightTime();
+
+            // Сохранение
             btnSave.Click += (s, e) =>
             {
-                if (ValidateForm(txtFlightNumber, txtAircraft, txtAirline))
+                if (ValidateForm(txtFlightNumber, txtAircraft, txtAirline, cmbDepartureAirport, cmbArrivalAirport))
                 {
-                    SaveFlight(txtFlightNumber.Text, txtAircraft.Text, txtAirline.Text);
+                    SaveFlight(
+                        txtFlightNumber.Text,
+                        cmbFlightType.SelectedItem?.ToString(),
+                        txtAircraft.Text,
+                        txtAirline.Text,
+                        cmbDepartureAirport.SelectedItem as AirportComboBoxItem,
+                        cmbArrivalAirport.SelectedItem as AirportComboBoxItem,
+                        dtpDeparture.Value,
+                        dtpArrival.Value,
+                        cmbStatus.SelectedItem?.ToString(),
+                        (int)numEconomySeats.Value,
+                        (int)numBusinessSeats.Value
+                    );
                 }
             };
 
@@ -171,7 +300,8 @@ namespace UD_WForms.Forms
                 this.Close();
             };
 
-            this.Controls.AddRange(new Control[] {
+            mainPanel.Controls.AddRange(new Control[] {
+                lblTitle,
                 lblFlightNumber, txtFlightNumber,
                 lblFlightType, cmbFlightType,
                 lblAircraft, txtAircraft,
@@ -187,34 +317,32 @@ namespace UD_WForms.Forms
                 btnSave, btnCancel
             });
 
-            // Инициализируем расчет времени
-            UpdateFlightTime(lblCalculatedTime);
-
+            this.Controls.Add(mainPanel);
             this.ResumeLayout(false);
         }
 
-        private void LoadAirports()
+        private void LoadAirports(ComboBox cmbDeparture, ComboBox cmbArrival)
         {
             try
             {
                 var airports = _airportService.GetAllAirports();
                 foreach (var airport in airports)
                 {
-                    string displayText = $"{airport.IATACode} - {airport.Name} ({airport.City})";
-                    cmbDepartureAirport.Items.Add(new AirportComboBoxItem(displayText, airport.AirportId));
-                    cmbArrivalAirport.Items.Add(new AirportComboBoxItem(displayText, airport.AirportId));
+                    var item = new AirportComboBoxItem(airport);
+                    cmbDeparture.Items.Add(item);
+                    cmbArrival.Items.Add(item);
                 }
 
-                if (_isEditMode && cmbDepartureAirport.Items.Count > 0)
+                if (_isEditMode && _flight != null)
                 {
-                    SelectAirportInComboBox(cmbDepartureAirport, _flight.DepartureAirportId);
-                    SelectAirportInComboBox(cmbArrivalAirport, _flight.ArrivalAirportId);
+                    SelectAirportInComboBox(cmbDeparture, _flight.DepartureAirportId);
+                    SelectAirportInComboBox(cmbArrival, _flight.ArrivalAirportId);
                 }
-                else if (cmbDepartureAirport.Items.Count > 0)
+                else if (cmbDeparture.Items.Count > 0)
                 {
-                    cmbDepartureAirport.SelectedIndex = 0;
-                    if (cmbArrivalAirport.Items.Count > 1)
-                        cmbArrivalAirport.SelectedIndex = 1;
+                    cmbDeparture.SelectedIndex = 0;
+                    if (cmbArrival.Items.Count > 1)
+                        cmbArrival.SelectedIndex = 1;
                 }
             }
             catch (Exception ex)
@@ -228,7 +356,7 @@ namespace UD_WForms.Forms
         {
             for (int i = 0; i < comboBox.Items.Count; i++)
             {
-                if (comboBox.Items[i] is AirportComboBoxItem item && item.AirportId == airportId)
+                if (comboBox.Items[i] is AirportComboBoxItem item && item.Airport.AirportId == airportId)
                 {
                     comboBox.SelectedIndex = i;
                     break;
@@ -236,81 +364,74 @@ namespace UD_WForms.Forms
             }
         }
 
-        private void UpdateFlightTime(Label label)
+        private bool ValidateForm(TextBox txtFlightNumber, TextBox txtAircraft, TextBox txtAirline,
+                                ComboBox cmbDeparture, ComboBox cmbArrival)
         {
-            TimeSpan flightTime = dtpArrival.Value - dtpDeparture.Value;
-            if (flightTime.TotalMinutes > 0)
-            {
-                label.Text = $"{flightTime.Hours:00}:{flightTime.Minutes:00}";
-                _flight.FlightTime = flightTime;
-            }
-            else
-            {
-                label.Text = "00:00";
-                label.ForeColor = System.Drawing.Color.Red;
-            }
-        }
-
-        private bool ValidateForm(TextBox txtFlightNumber, TextBox txtAircraft, TextBox txtAirline)
-        {
-            if (string.IsNullOrEmpty(txtFlightNumber.Text))
+            if (string.IsNullOrWhiteSpace(txtFlightNumber.Text))
             {
                 MessageBox.Show("Введите номер рейса", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtFlightNumber.Focus();
                 return false;
             }
 
-            if (string.IsNullOrEmpty(txtAircraft.Text))
+            if (string.IsNullOrWhiteSpace(txtAircraft.Text))
             {
                 MessageBox.Show("Введите тип самолета", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAircraft.Focus();
                 return false;
             }
 
-            if (string.IsNullOrEmpty(txtAirline.Text))
+            if (string.IsNullOrWhiteSpace(txtAirline.Text))
             {
                 MessageBox.Show("Введите авиакомпанию", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtAirline.Focus();
                 return false;
             }
 
-            if (cmbDepartureAirport.SelectedItem == null || cmbArrivalAirport.SelectedItem == null)
+            if (cmbDeparture.SelectedItem == null || cmbArrival.SelectedItem == null)
             {
                 MessageBox.Show("Выберите аэропорты вылета и прибытия", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
-            if (cmbDepartureAirport.SelectedIndex == cmbArrivalAirport.SelectedIndex)
+            if (cmbDeparture.SelectedIndex == cmbArrival.SelectedIndex)
             {
                 MessageBox.Show("Аэропорты вылета и прибытия не могут совпадать", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-
-            if (dtpArrival.Value <= dtpDeparture.Value)
-            {
-                MessageBox.Show("Время прибытия должно быть позже времени вылета", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
 
             return true;
         }
 
-        private void SaveFlight(string flightNumber, string aircraft, string airline)
+        private void SaveFlight(string flightNumber, string flightType, string aircraft, string airline,
+                              AirportComboBoxItem departure, AirportComboBoxItem arrival,
+                              DateTime departureDate, DateTime arrivalDate, string status,
+                              int economySeats, int businessSeats)
         {
             try
             {
+                // Создаем или обновляем объект Flight
+                if (_flight == null)
+                {
+                    _flight = new Flight();
+                }
+
                 _flight.FlightNumber = flightNumber;
+                _flight.FlightType = flightType;
                 _flight.Aircraft = aircraft;
                 _flight.Airline = airline;
-                _flight.FlightType = cmbFlightType.SelectedItem?.ToString();
-                _flight.DepartureDate = dtpDeparture.Value;
-                _flight.ArrivalDate = dtpArrival.Value;
-                _flight.Status = cmbStatus.SelectedItem?.ToString();
-                _flight.EconomySeats = (int)numEconomySeats.Value;
-                _flight.BusinessSeats = (int)numBusinessSeats.Value;
+                _flight.DepartureDate = departureDate;
+                _flight.ArrivalDate = arrivalDate;
+                _flight.FlightTime = arrivalDate - departureDate;
+                _flight.Status = status;
+                _flight.EconomySeats = economySeats;
+                _flight.BusinessSeats = businessSeats;
 
-                if (cmbDepartureAirport.SelectedItem is AirportComboBoxItem departureItem)
-                    _flight.DepartureAirportId = departureItem.AirportId;
+                if (departure != null)
+                    _flight.DepartureAirportId = departure.Airport.AirportId;
 
-                if (cmbArrivalAirport.SelectedItem is AirportComboBoxItem arrivalItem)
-                    _flight.ArrivalAirportId = arrivalItem.AirportId;
+                if (arrival != null)
+                    _flight.ArrivalAirportId = arrival.Airport.AirportId;
 
                 bool success;
                 if (_isEditMode)
@@ -328,6 +449,11 @@ namespace UD_WForms.Forms
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.DialogResult = DialogResult.OK;
                     this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось сохранить данные рейса", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch (Exception ex)
@@ -361,19 +487,21 @@ namespace UD_WForms.Forms
 
         private string GenerateFlightNumber()
         {
-            return "SU" + DateTime.Now.ToString("MMddHHmm");
+            Random rnd = new Random();
+            string[] airlines = { "SU", "S7", "U6", "FV", "DP" };
+            string airline = airlines[rnd.Next(airlines.Length)];
+            return $"{airline}{rnd.Next(1000, 9999)}";
         }
 
         // Вспомогательный класс для ComboBox
         private class AirportComboBoxItem
         {
-            public string DisplayText { get; set; }
-            public int AirportId { get; set; }
+            public Airport Airport { get; set; }
+            public string DisplayText => $"{Airport.IATACode} - {Airport.Name} ({Airport.City}, {Airport.Country})";
 
-            public AirportComboBoxItem(string displayText, int airportId)
+            public AirportComboBoxItem(Airport airport)
             {
-                DisplayText = displayText;
-                AirportId = airportId;
+                Airport = airport ?? throw new ArgumentNullException(nameof(airport));
             }
 
             public override string ToString()

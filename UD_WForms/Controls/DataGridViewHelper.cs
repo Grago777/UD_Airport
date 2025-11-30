@@ -6,7 +6,9 @@ namespace UD_WForms.Controls
     {
         public static void ConfigureDataGridView(DataGridView dataGridView)
         {
-            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            if (dataGridView == null) return;
+
+            dataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             dataGridView.ReadOnly = true;
             dataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dataGridView.MultiSelect = false;
@@ -22,6 +24,8 @@ namespace UD_WForms.Controls
 
         public static void AddActionButtons(DataGridView dataGridView)
         {
+            if (dataGridView == null) return;
+
             // Колонка для кнопки редактирования
             var editButton = new DataGridViewButtonColumn
             {
