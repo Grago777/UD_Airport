@@ -14,9 +14,13 @@ namespace UD_WForms.Services
 
             try
             {
+                Console.WriteLine("Начало загрузки рейсов из базы данных...");
+
                 using (var connection = ConnectionFactory.CreateConnection())
                 {
                     connection.Open();
+                    Console.WriteLine("Подключение к базе данных установлено");
+
                     string query = @"
                 SELECT 
                     FlightNumber, FlightType, Aircraft, DepartureDate, ArrivalDate, 
@@ -28,8 +32,12 @@ namespace UD_WForms.Services
                     using (var cmd = new NpgsqlCommand(query, connection))
                     using (var reader = cmd.ExecuteReader())
                     {
+                        Console.WriteLine("Выполнение SQL запроса...");
+                        int count = 0;
+
                         while (reader.Read())
                         {
+                            count++;
                             try
                             {
                                 var flight = new Flight
@@ -48,20 +56,22 @@ namespace UD_WForms.Services
                                     Airline = reader.IsDBNull(11) ? "" : reader.GetString(11)
                                 };
                                 flights.Add(flight);
+
+                                Console.WriteLine($"Загружен рейс {count}: {flight.FlightNumber} - {flight.Airline} - {flight.DepartureDate}");
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine($"Ошибка чтения данных рейса: {ex.Message}");
+                                Console.WriteLine($"Ошибка чтения данных рейса {count}: {ex.Message}");
                             }
                         }
+
+                        Console.WriteLine($"Всего загружено рейсов: {count}");
                     }
                 }
-
-                Console.WriteLine($"Успешно загружено {flights.Count} рейсов");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка в GetAllFlights: {ex.Message}");
+                Console.WriteLine($"Критическая ошибка в GetAllFlights: {ex.Message}");
                 throw new Exception($"Ошибка получения рейсов: {ex.Message}");
             }
 

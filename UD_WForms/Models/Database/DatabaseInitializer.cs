@@ -249,9 +249,10 @@ namespace UD_WForms.Models.Database
                             // Добавляем тестовые рейсы
                             string insertFlights = $@"
                                 INSERT INTO Flight (FlightNumber, FlightType, Aircraft, DepartureDate, ArrivalDate, FlightTime, Status, DepartureAirportId, ArrivalAirportId, EconomySeats, BusinessSeats, Airline) VALUES
-                                ('SU100', 'Регулярный', 'Boeing 737', '2024-01-20 10:00:00', '2024-01-20 12:00:00', '2 hours', 'По расписанию', {svoId}, {ledId}, 150, 20, 'Аэрофлот'),
-                                ('SU200', 'Регулярный', 'Airbus A320', '2024-01-20 14:00:00', '2024-01-20 18:00:00', '4 hours', 'По расписанию', {svoId}, {aerId}, 140, 16, 'Аэрофлот'),
-                                ('SU300', 'Регулярный', 'Boeing 777', '2024-01-20 16:00:00', '2024-01-20 17:30:00', '1 hour 30 minutes', 'По расписанию', {ledId}, {svoId}, 200, 30, 'Аэрофлот');";
+                                ('SU101', 'Регулярный', 'Boeing 737', '{DateTime.Now.AddDays(1):yyyy-MM-dd} 10:00:00', '{DateTime.Now.AddDays(1):yyyy-MM-dd} 12:00:00', '02:00:00', 'По расписанию', {svoId}, {ledId}, 150, 20, 'Аэрофлот'),
+                                ('SU102', 'Регулярный', 'Airbus A320', '{DateTime.Now.AddDays(2):yyyy-MM-dd} 14:00:00', '{DateTime.Now.AddDays(2):yyyy-MM-dd} 18:00:00', '04:00:00', 'По расписанию', {svoId}, {aerId}, 140, 16, 'Аэрофлот'),
+                                ('SU103', 'Регулярный', 'Boeing 777', '{DateTime.Now.AddDays(3):yyyy-MM-dd} 16:00:00', '{DateTime.Now.AddDays(3):yyyy-MM-dd} 17:30:00', '01:30:00', 'По расписанию', {ledId}, {svoId}, 200, 30, 'Аэрофлот'),
+                                ('SU105', 'Регулярный', 'Airbus A330', '{DateTime.Now.AddDays(4):yyyy-MM-dd} 20:00:00', '{DateTime.Now.AddDays(5):yyyy-MM-dd} 22:00:00', '02:00:00', 'По расписанию', {aerId}, {svoId}, 160, 24, 'Аэрофлот');";
 
                             ExecuteNonQuery(connection, insertFlights);
                         }
@@ -278,8 +279,7 @@ namespace UD_WForms.Models.Database
                     }
                 }
 
-                //MessageBox.Show("Тестовые данные успешно добавлены!", "Успех",
-                    //MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             }
             catch (Exception ex)
             {

@@ -28,6 +28,7 @@ namespace UD_WForms.Forms
         private Button btnCalculate;
         private Button btnSell;
         private Button btnCancel;
+        private Button btnRefreshFlights;
 
         public SellTicketForm()
         {
@@ -44,7 +45,7 @@ namespace UD_WForms.Forms
             this.SuspendLayout();
 
             this.Text = "Продажа нового билета";
-            this.Size = new System.Drawing.Size(500, 450);
+            this.Size = new System.Drawing.Size(550, 500);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -60,7 +61,7 @@ namespace UD_WForms.Forms
             int top = 10;
             int leftLabel = 10;
             int leftControl = 150;
-            int controlWidth = 250;
+            int controlWidth = 280;
             int spacing = 35;
 
             // Заголовок
@@ -90,14 +91,37 @@ namespace UD_WForms.Forms
 
             // Рейс
             var lblFlight = new Label() { Text = "Рейс:*", Left = leftLabel, Top = top, Width = 130 };
+
+            // Панель для рейса с кнопкой обновления
+            Panel flightPanel = new Panel();
+            flightPanel.Left = leftControl;
+            flightPanel.Top = top - 3;
+            flightPanel.Width = controlWidth + 40;
+            flightPanel.Height = 25;
+
             cmbFlight = new ComboBox()
             {
-                Left = leftControl,
-                Top = top,
+                Left = 0,
+                Top = 0,
                 Width = controlWidth,
                 DropDownStyle = ComboBoxStyle.DropDownList,
                 DisplayMember = "DisplayText"
             };
+
+            btnRefreshFlights = new Button()
+            {
+                Text = "🔄",
+                Left = controlWidth + 5,
+                Top = 0,
+                Width = 30,
+                Height = 23,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 8F)
+            };
+            btnRefreshFlights.Click += BtnRefreshFlights_Click;
+
+            flightPanel.Controls.Add(cmbFlight);
+            flightPanel.Controls.Add(btnRefreshFlights);
+
             cmbFlight.SelectedIndexChanged += CmbFlight_SelectedIndexChanged;
             top += spacing;
 
@@ -107,12 +131,12 @@ namespace UD_WForms.Forms
                 Text = "Выберите рейс для отображения информации",
                 Left = leftControl,
                 Top = top,
-                Width = controlWidth,
-                Height = 40,
-                Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Italic),
+                Width = controlWidth + 40,
+                Height = 50,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Italic),
                 ForeColor = System.Drawing.Color.DarkGray
             };
-            top += 50;
+            top += 60;
 
             // Класс
             var lblClass = new Label() { Text = "Класс:*", Left = leftLabel, Top = top, Width = 130 };
@@ -151,7 +175,7 @@ namespace UD_WForms.Forms
                 Left = leftControl,
                 Top = top,
                 Width = controlWidth,
-                Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular)
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular)
             };
             top += spacing;
 
@@ -208,7 +232,7 @@ namespace UD_WForms.Forms
             mainPanel.Controls.AddRange(new Control[] {
                 lblTitle,
                 lblPassenger, cmbPassenger,
-                lblFlight, cmbFlight,
+                lblFlight, flightPanel,
                 lblFlightInfo,
                 lblClass, cmbClass,
                 lblLuggage, numLuggage,
@@ -230,26 +254,24 @@ namespace UD_WForms.Forms
 
                 // Загружаем пассажиров
                 _allPassengers = _passengerService.GetAllPassengers();
-                foreach (var passenger in _allPassengers)
+                cmbPassenger.Items.Clear();
+
+                if (_allPassengers.Count == 0)
                 {
-                    cmbPassenger.Items.Add(new PassengerComboBoxItem(passenger));
+                    MessageBox.Show("В системе нет пассажиров. Сначала добавьте пассажира.", "Информация",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-                if (cmbPassenger.Items.Count > 0)
+                else
+                {
+                    foreach (var passenger in _allPassengers)
+                    {
+                        cmbPassenger.Items.Add(new PassengerComboBoxItem(passenger));
+                    }
                     cmbPassenger.SelectedIndex = 0;
+                }
 
                 // Загружаем рейсы
-                _allFlights = _flightService.GetAllFlights()
-                    .Where(f => f.Status == "По расписанию" &&
-                           f.DepartureDate > DateTime.Now.AddHours(1)) // Рейсы которые еще не вылетели
-                    .OrderBy(f => f.DepartureDate)
-                    .ToList();
-
-                foreach (var flight in _allFlights)
-                {
-                    cmbFlight.Items.Add(new FlightComboBoxItem(flight));
-                }
-                if (cmbFlight.Items.Count > 0)
-                    cmbFlight.SelectedIndex = 0;
+                LoadFlights();
 
                 Cursor = Cursors.Default;
             }
@@ -261,6 +283,72 @@ namespace UD_WForms.Forms
             }
         }
 
+        private void LoadFlights()
+        {
+            try
+            {
+                cmbFlight.Items.Clear();
+                _allFlights = _flightService.GetAllFlights();
+
+                // Отладочная информация
+                Console.WriteLine($"Всего рейсов в системе: {_allFlights.Count}");
+
+                // Фильтруем рейсы
+                var availableFlights = _allFlights
+                    .Where(f => f.Status == "По расписанию" || f.Status == "Задержан")
+                    .Where(f => f.DepartureDate > DateTime.Now)
+                    .Where(f => f.EconomySeats > 0 || f.BusinessSeats > 0)
+                    .OrderBy(f => f.DepartureDate)
+                    .ToList();
+
+                Console.WriteLine($"Доступных рейсов для продажи: {availableFlights.Count}");
+
+                if (availableFlights.Count == 0)
+                {
+                    cmbFlight.Items.Add("Нет доступных рейсов");
+                    cmbFlight.Enabled = false;
+                    lblFlightInfo.Text = "Нет доступных рейсов для продажи билетов.\nВсе рейсы либо уже вылетели, либо нет свободных мест.";
+                    lblFlightInfo.ForeColor = System.Drawing.Color.Red;
+                }
+                else
+                {
+                    foreach (var flight in availableFlights)
+                    {
+                        cmbFlight.Items.Add(new FlightComboBoxItem(flight));
+                    }
+                    cmbFlight.SelectedIndex = 0;
+                    cmbFlight.Enabled = true;
+                }
+
+                // Обновляем статистику
+                UpdateFlightStatistics(availableFlights);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка загрузки рейсов: {ex.Message}");
+                cmbFlight.Items.Add("Ошибка загрузки рейсов");
+                cmbFlight.Enabled = false;
+            }
+        }
+
+        private void UpdateFlightStatistics(List<Flight> flights)
+        {
+            int totalFlights = flights.Count;
+            int withEconomySeats = flights.Count(f => f.EconomySeats > 0);
+            int withBusinessSeats = flights.Count(f => f.BusinessSeats > 0);
+
+            Console.WriteLine($"Статистика: Всего {totalFlights} рейсов, " +
+                             $"с эконом местами: {withEconomySeats}, " +
+                             $"с бизнес местами: {withBusinessSeats}");
+        }
+
+        private void BtnRefreshFlights_Click(object sender, EventArgs e)
+        {
+            LoadFlights();
+            MessageBox.Show("Список рейсов обновлен", "Обновление",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         private void CmbFlight_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cmbFlight.SelectedItem is FlightComboBoxItem flightItem)
@@ -269,6 +357,15 @@ namespace UD_WForms.Forms
                 UpdateFlightInfo();
                 UpdateSeatsInfo();
                 CalculatePrice();
+            }
+            else if (cmbFlight.SelectedItem?.ToString() == "Нет доступных рейсов" ||
+                     cmbFlight.SelectedItem?.ToString() == "Ошибка загрузки рейсов")
+            {
+                _selectedFlight = null;
+                lblFlightInfo.Text = cmbFlight.SelectedItem?.ToString();
+                lblFlightInfo.ForeColor = System.Drawing.Color.Red;
+                lblSeatsInfo.Text = "Доступно мест: -";
+                lblPrice.Text = "0 ₽";
             }
         }
 
@@ -287,10 +384,11 @@ namespace UD_WForms.Forms
         {
             if (_selectedFlight == null) return;
 
-            string flightInfo = $"{_selectedFlight.FlightNumber} - {_selectedFlight.Airline}\n" +
-                              $"Вылет: {_selectedFlight.DepartureDate:dd.MM.yyyy HH:mm}\n" +
-                              $"Прибытие: {_selectedFlight.ArrivalDate:dd.MM.yyyy HH:mm}\n" +
-                              $"Самолет: {_selectedFlight.Aircraft}";
+            string flightInfo = $"✈️ Рейс: {_selectedFlight.FlightNumber}\n" +
+                              $"🏢 Авиакомпания: {_selectedFlight.Airline}\n" +
+                              $"🛫 Вылет: {_selectedFlight.DepartureDate:dd.MM.yyyy HH:mm}\n" +
+                              $"🛬 Прибытие: {_selectedFlight.ArrivalDate:dd.MM.yyyy HH:mm}\n" +
+                              $"✈️ Самолет: {_selectedFlight.Aircraft}";
 
             lblFlightInfo.Text = flightInfo;
             lblFlightInfo.ForeColor = System.Drawing.Color.DarkBlue;
@@ -303,12 +401,12 @@ namespace UD_WForms.Forms
             string seatsInfo = "";
             if (cmbClass.SelectedItem?.ToString() == "Эконом")
             {
-                seatsInfo = $"Доступно мест эконом: {_selectedFlight.EconomySeats}";
+                seatsInfo = $"✅ Доступно мест эконом: {_selectedFlight.EconomySeats}";
                 _basePrice = 5000; // Базовая цена эконом
             }
             else if (cmbClass.SelectedItem?.ToString() == "Бизнес")
             {
-                seatsInfo = $"Доступно мест бизнес: {_selectedFlight.BusinessSeats}";
+                seatsInfo = $"✅ Доступно мест бизнес: {_selectedFlight.BusinessSeats}";
                 _basePrice = 15000; // Базовая цена бизнес
             }
 
@@ -323,7 +421,11 @@ namespace UD_WForms.Forms
 
         private void CalculatePrice()
         {
-            if (_selectedFlight == null) return;
+            if (_selectedFlight == null)
+            {
+                lblPrice.Text = "0 ₽";
+                return;
+            }
 
             decimal price = _basePrice;
 
@@ -339,6 +441,13 @@ namespace UD_WForms.Forms
             if (cmbClass.SelectedItem?.ToString() == "Бизнес")
             {
                 price *= 1.5M; // +50% за бизнес
+            }
+
+            // Скидка за раннее бронирование (если до вылета более 7 дней)
+            TimeSpan timeToDeparture = _selectedFlight.DepartureDate - DateTime.Now;
+            if (timeToDeparture.TotalDays > 7)
+            {
+                price *= 0.9M; // -10% скидка
             }
 
             lblPrice.Text = $"{price:N2} ₽";
@@ -365,6 +474,22 @@ namespace UD_WForms.Forms
                 if (!CheckSeatAvailability())
                     return;
 
+                // Запрашиваем подтверждение
+                var confirmResult = MessageBox.Show(
+                    $"Подтвердите продажу билета:\n\n" +
+                    $"Пассажир: {passengerItem.Passenger.FullName}\n" +
+                    $"Рейс: {flightItem.Flight.FlightNumber}\n" +
+                    $"Класс: {cmbClass.SelectedItem}\n" +
+                    $"Багаж: {numLuggage.Value} кг\n" +
+                    $"Цена: {lblPrice.Text}\n\n" +
+                    $"Продолжить продажу?",
+                    "Подтверждение продажи",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (confirmResult != DialogResult.Yes)
+                    return;
+
                 // Создаем билет
                 var ticket = new Ticket
                 {
@@ -383,7 +508,16 @@ namespace UD_WForms.Forms
                     // Обновляем количество мест
                     UpdateFlightSeats();
 
-                    MessageBox.Show($"Билет успешно продан!\nНомер билета: {ticket.TicketNumber}\nСтоимость: {ticket.Price:N2} ₽",
+                    // Показываем чек
+                    MessageBox.Show(
+                        $"✅ БИЛЕТ ПРОДАН УСПЕШНО!\n\n" +
+                        $"📋 Номер билета: {ticket.TicketNumber}\n" +
+                        $"👤 Пассажир: {passengerItem.Passenger.FullName}\n" +
+                        $"✈️ Рейс: {ticket.FlightNumber}\n" +
+                        $"🎫 Класс: {ticket.Class}\n" +
+                        $"🧳 Багаж: {ticket.Luggage} кг\n" +
+                        $"💰 Стоимость: {ticket.Price:N2} ₽\n\n" +
+                        $"Билет сохранен в системе.",
                         "Успешная продажа",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
 
@@ -392,7 +526,7 @@ namespace UD_WForms.Forms
                 }
                 else
                 {
-                    MessageBox.Show("Не удалось сохранить билет", "Ошибка",
+                    MessageBox.Show("Не удалось сохранить билет в базу данных", "Ошибка",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
@@ -405,17 +539,16 @@ namespace UD_WForms.Forms
 
         private bool ValidateForm()
         {
-            if (cmbPassenger.SelectedItem == null)
+            if (cmbPassenger.SelectedItem == null || cmbPassenger.Items.Count == 0)
             {
-                MessageBox.Show("Выберите пассажира", "Ошибка",
+                MessageBox.Show("В системе нет пассажиров. Сначала добавьте пассажира.", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                cmbPassenger.Focus();
                 return false;
             }
 
-            if (cmbFlight.SelectedItem == null)
+            if (cmbFlight.SelectedItem == null || !cmbFlight.Enabled)
             {
-                MessageBox.Show("Выберите рейс", "Ошибка",
+                MessageBox.Show("Выберите доступный рейс", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 cmbFlight.Focus();
                 return false;
@@ -453,7 +586,8 @@ namespace UD_WForms.Forms
 
             if (availableSeats <= 0)
             {
-                MessageBox.Show($"Нет свободных мест {seatType} класса на выбранный рейс",
+                MessageBox.Show($"❌ Нет свободных мест {seatType} класса на выбранный рейс\n\n" +
+                               $"Пожалуйста, выберите другой рейс или класс.",
                     "Нет мест", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
@@ -470,26 +604,27 @@ namespace UD_WForms.Forms
             if (selectedClass == "Эконом")
             {
                 _selectedFlight.EconomySeats--;
-                _flightService.UpdateFlight(_selectedFlight);
             }
             else if (selectedClass == "Бизнес")
             {
                 _selectedFlight.BusinessSeats--;
-                _flightService.UpdateFlight(_selectedFlight);
             }
+
+            // Обновляем рейс в базе данных
+            _flightService.UpdateFlight(_selectedFlight);
         }
 
         private string GenerateTicketNumber()
         {
             Random rnd = new Random();
-            return $"TK{DateTime.Now:yyMMdd}{rnd.Next(1000, 9999)}";
+            return $"TK{DateTime.Now:yyMMddHHmm}{rnd.Next(10, 99)}";
         }
 
         // Вспомогательные классы для ComboBox
         private class PassengerComboBoxItem
         {
             public Passenger Passenger { get; set; }
-            public string DisplayText => $"{Passenger.PassengerId}: {Passenger.FullName} ({Passenger.PassportData})";
+            public string DisplayText => $"{Passenger.FullName} (Паспорт: {Passenger.PassportData})";
 
             public PassengerComboBoxItem(Passenger passenger)
             {
@@ -505,7 +640,7 @@ namespace UD_WForms.Forms
         private class FlightComboBoxItem
         {
             public Flight Flight { get; set; }
-            public string DisplayText => $"{Flight.FlightNumber} - {Flight.Airline} ({Flight.DepartureDate:dd.MM.yy HH:mm})";
+            public string DisplayText => $"{Flight.FlightNumber} - {Flight.Airline} - {Flight.DepartureDate:dd.MM.yy HH:mm}";
 
             public FlightComboBoxItem(Flight flight)
             {

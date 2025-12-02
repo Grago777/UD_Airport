@@ -91,7 +91,7 @@ namespace UD_WForms.Forms
             dtpDateFilter = new DateTimePicker() { Left = 400, Top = 38, Width = 90, Format = DateTimePickerFormat.Short };
             dtpDateFilter.ValueChanged += Filter_Changed;
 
-            chkUseDateFilter = new CheckBox() { Text = "Фильтр по дате", Left = 500, Top = 40, Width = 100 };
+            chkUseDateFilter = new CheckBox() { Text = "Фильтр по дате", Left = 500, Top = 40, Width = 150 };
             chkUseDateFilter.CheckedChanged += Filter_Changed;
 
             // Третья строка - дополнительные кнопки
