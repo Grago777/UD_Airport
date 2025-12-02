@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UD_WForms")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f1eb4b48bd7019d04b052dd36891687e518e27d6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+81e0ba80887c1028a2ac6c9126a319f0334f8c11")]
 [assembly: System.Reflection.AssemblyProductAttribute("UD_WForms")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UD_WForms")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

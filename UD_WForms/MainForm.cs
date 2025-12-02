@@ -9,6 +9,12 @@ namespace UD_WForms
 {
     public partial class MainForm : Form
     {
+        private Panel _contentPanel;
+        private TableLayoutPanel _mainContainer;
+        private StatusStrip _statusStrip;
+        private MenuStrip _mainMenu;
+        private Label _welcomeLabel;
+
         public MainForm()
         {
             InitializeComponent();
@@ -59,110 +65,167 @@ namespace UD_WForms
         {
             this.SuspendLayout();
 
-            // MainForm
+            // Основные свойства формы
             this.ClientSize = new System.Drawing.Size(1000, 700);
             this.Text = "Авиакасса - Система управления билетами";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.WindowState = FormWindowState.Maximized;
-            this.IsMdiContainer = true;
+            this.MinimumSize = new System.Drawing.Size(800, 600);
+            this.AutoScaleMode = AutoScaleMode.Font;
 
-            // Menu Strip
-            MenuStrip mainMenu = new MenuStrip();
-            ToolStripMenuItem fileMenu = new ToolStripMenuItem("Файл");
-            ToolStripMenuItem ticketsMenu = new ToolStripMenuItem("Билеты");
-            ToolStripMenuItem passengersMenu = new ToolStripMenuItem("Пассажиры");
-            ToolStripMenuItem flightsMenu = new ToolStripMenuItem("Рейсы");
-            ToolStripMenuItem airportsMenu = new ToolStripMenuItem("Аэропорты");
-            ToolStripMenuItem reportsMenu = new ToolStripMenuItem("Отчеты");
-            ToolStripMenuItem helpMenu = new ToolStripMenuItem("Справка");
+            // Главный контейнер с TableLayoutPanel для гибкого управления
+            _mainContainer = new TableLayoutPanel();
+            _mainContainer.Dock = DockStyle.Fill;
+            _mainContainer.RowCount = 3;
+            _mainContainer.ColumnCount = 1;
+            _mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Меню
+            _mainContainer.RowStyles.Add(new RowStyle(SizeType.Percent, 100F)); // Контент
+            _mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Статус бар
+            _mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            // Элементы меню Файл
-            ToolStripMenuItem settingsItem = new ToolStripMenuItem("Настройки БД");
-            settingsItem.Click += (s, e) => ShowConnectionSettings();
+            // Меню (автоматический размер)
+            _mainMenu = CreateMainMenu();
+            _mainMenu.Dock = DockStyle.Fill;
 
-            ToolStripMenuItem exitItem = new ToolStripMenuItem("Выход");
-            exitItem.Click += (s, e) => Application.Exit();
+            // Контентная панель (растягивается на все доступное пространство)
+            _contentPanel = new Panel();
+            _contentPanel.Dock = DockStyle.Fill;
+            _contentPanel.BackColor = System.Drawing.Color.White;
+            _contentPanel.AutoScroll = true;
+            _contentPanel.Padding = new Padding(40);
 
-            fileMenu.DropDownItems.Add(settingsItem);
-            fileMenu.DropDownItems.Add(new ToolStripSeparator());
-            fileMenu.DropDownItems.Add(exitItem);
-
-            // Элементы меню Билеты
-            ToolStripMenuItem manageTicketsItem = new ToolStripMenuItem("Управление билетами");
-            manageTicketsItem.Click += (s, e) => ShowTicketsForm();
-
-            ToolStripMenuItem searchTicketsItem = new ToolStripMenuItem("Поиск билетов");
-            searchTicketsItem.Click += (s, e) => ShowSearchForm("tickets");
-
-            ticketsMenu.DropDownItems.Add(manageTicketsItem);
-            ticketsMenu.DropDownItems.Add(searchTicketsItem);
-            
-
-
-            // Элементы меню Пассажиры
-            ToolStripMenuItem managePassengersItem = new ToolStripMenuItem("Управление пассажирами");
-            managePassengersItem.Click += (s, e) => ShowPassengersForm();
-
-            passengersMenu.DropDownItems.Add(managePassengersItem);
-
-            // Элементы меню Рейсы
-            ToolStripMenuItem manageFlightsItem = new ToolStripMenuItem("Управление рейсами");
-            manageFlightsItem.Click += (s, e) => ShowFlightsForm();
-
-            flightsMenu.DropDownItems.Add(manageFlightsItem);
-
-            // Элементы меню Аэропорты
-            ToolStripMenuItem manageAirportsItem = new ToolStripMenuItem("Управление аэропортами");
-            manageAirportsItem.Click += (s, e) => ShowAirportsForm();
-
-            airportsMenu.DropDownItems.Add(manageAirportsItem);
-
-            mainMenu.Items.AddRange(new ToolStripItem[] {
-                fileMenu, ticketsMenu, passengersMenu, flightsMenu, airportsMenu, reportsMenu, helpMenu
-            });
-
-            this.MainMenuStrip = mainMenu;
-            this.Controls.Add(mainMenu);
-
-            // Welcome Panel
-            Panel welcomePanel = new Panel();
-            welcomePanel.Dock = DockStyle.Fill;
-            welcomePanel.BackColor = System.Drawing.Color.White;
-
-            Label welcomeLabel = new Label();
-            welcomeLabel.Text = "Добро пожаловать в систему авиакассы!\n\n" +
+            // Приветственный текст
+            _welcomeLabel = new Label();
+            _welcomeLabel.Text = "Добро пожаловать в систему авиакассы!\n\n" +
                                "Для работы с системой выберите соответствующий раздел в меню.\n\n" +
                                "Доступные модули:\n" +
                                "• Билеты - управление продажей билетов\n" +
                                "• Пассажиры - база данных пассажиров\n" +
                                "• Рейсы - расписание и управление рейсами\n" +
                                "• Аэропорты - справочник аэропортов";
-            welcomeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular);
-            welcomeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            welcomeLabel.Dock = DockStyle.Fill;
-            welcomeLabel.Padding = new Padding(20);
+            _welcomeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular);
+            _welcomeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            _welcomeLabel.Dock = DockStyle.Fill;
+            _welcomeLabel.AutoSize = true;  // Автоматический размер текста
+            _welcomeLabel.Padding = new Padding(20);
 
-            welcomePanel.Controls.Add(welcomeLabel);
-            this.Controls.Add(welcomePanel);
+            // Создаем панель для центрирования текста
+            Panel centerPanel = new Panel();
+            centerPanel.Dock = DockStyle.Fill;
+            centerPanel.BackColor = System.Drawing.Color.White;
 
-            // Status Strip
-            StatusStrip statusStrip = new StatusStrip();
+            // Используем TableLayoutPanel для центрирования
+            TableLayoutPanel tableCenter = new TableLayoutPanel();
+            tableCenter.Dock = DockStyle.Fill;
+            tableCenter.RowCount = 1;
+            tableCenter.ColumnCount = 1;
+            tableCenter.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+            tableCenter.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+
+            // Панель для текста
+            Panel textContainer = new Panel();
+            textContainer.Anchor = AnchorStyles.None;
+            textContainer.AutoSize = true;
+            textContainer.Controls.Add(_welcomeLabel);
+
+            // Добавляем текст в центрирующую таблицу
+            tableCenter.Controls.Add(textContainer, 0, 0);
+            tableCenter.SetCellPosition(textContainer, new TableLayoutPanelCellPosition(0, 0));
+
+            centerPanel.Controls.Add(tableCenter);
+            _contentPanel.Controls.Add(centerPanel);
+
+            // Статус бар (автоматический размер)
+            _statusStrip = new StatusStrip();
             ToolStripStatusLabel statusLabel = new ToolStripStatusLabel();
             statusLabel.Text = "Готов к работе";
-            statusStrip.Items.Add(statusLabel);
+            statusLabel.Spring = true;  // Растягивается по ширине
+            statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            _statusStrip.Items.Add(statusLabel);
+            _statusStrip.Dock = DockStyle.Fill;
 
-            this.Controls.Add(statusStrip);
+            // Добавляем элементы в главный контейнер
+            _mainContainer.Controls.Add(_mainMenu, 0, 0);
+            _mainContainer.Controls.Add(_contentPanel, 0, 1);
+            _mainContainer.Controls.Add(_statusStrip, 0, 2);
 
-            this.ResumeLayout(false);
+            // Добавляем главный контейнер на форму
+            this.Controls.Add(_mainContainer);
+
+            // Устанавливаем MainMenuStrip для корректной работы меню
+            this.MainMenuStrip = _mainMenu;
+
+            this.ResumeLayout(true);
             this.PerformLayout();
-            this.SuspendLayout();
+        }
 
-            // MainForm
-            this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Text = "Авиакасса - Система управления билетами";
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.WindowState = FormWindowState.Maximized;
-            this.IsMdiContainer = true; // Включаем поддержку MDI
+        private MenuStrip CreateMainMenu()
+        {
+            MenuStrip mainMenu = new MenuStrip();
+
+            // Меню Файл
+            ToolStripMenuItem fileMenu = new ToolStripMenuItem("Файл");
+            ToolStripMenuItem settingsItem = new ToolStripMenuItem("Настройки БД");
+            settingsItem.Click += (s, e) => ShowConnectionSettings();
+            ToolStripMenuItem exitItem = new ToolStripMenuItem("Выход");
+            exitItem.Click += (s, e) => Application.Exit();
+            fileMenu.DropDownItems.Add(settingsItem);
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            fileMenu.DropDownItems.Add(exitItem);
+
+            // Меню Билеты
+            ToolStripMenuItem ticketsMenu = new ToolStripMenuItem("Билеты");
+            ToolStripMenuItem manageTicketsItem = new ToolStripMenuItem("Управление билетами");
+            manageTicketsItem.Click += (s, e) => ShowTicketsForm();
+            ticketsMenu.DropDownItems.Add(manageTicketsItem);
+
+            // Меню Пассажиры
+            ToolStripMenuItem passengersMenu = new ToolStripMenuItem("Пассажиры");
+            ToolStripMenuItem managePassengersItem = new ToolStripMenuItem("Управление пассажирами");
+            managePassengersItem.Click += (s, e) => ShowPassengersForm();
+            passengersMenu.DropDownItems.Add(managePassengersItem);
+
+            // Меню Рейсы
+            ToolStripMenuItem flightsMenu = new ToolStripMenuItem("Рейсы");
+            ToolStripMenuItem manageFlightsItem = new ToolStripMenuItem("Управление рейсами");
+            manageFlightsItem.Click += (s, e) => ShowFlightsForm();
+            flightsMenu.DropDownItems.Add(manageFlightsItem);
+
+            // Меню Аэропорты
+            ToolStripMenuItem airportsMenu = new ToolStripMenuItem("Аэропорты");
+            ToolStripMenuItem manageAirportsItem = new ToolStripMenuItem("Управление аэропортами");
+            manageAirportsItem.Click += (s, e) => ShowAirportsForm();
+            airportsMenu.DropDownItems.Add(manageAirportsItem);
+
+            // Добавляем все меню в главное меню
+            mainMenu.Items.AddRange(new ToolStripItem[] {
+                fileMenu, ticketsMenu, passengersMenu, flightsMenu, airportsMenu
+            });
+
+            return mainMenu;
+        }
+
+        // Метод для смены контента на форме
+        public void SetContent(Control content)
+        {
+            _contentPanel.Controls.Clear();
+            content.Dock = DockStyle.Fill;
+            _contentPanel.Controls.Add(content);
+        }
+
+        // Метод для возврата к приветственному экрану
+        public void ShowWelcomeScreen()
+        {
+            SetContent(_contentPanel); // Восстанавливаем оригинальный контент
+        }
+
+        // Метод обновления статус-бара
+        public void UpdateStatus(string message)
+        {
+            if (_statusStrip.Items.Count > 0)
+            {
+                _statusStrip.Items[0].Text = message;
+            }
         }
 
         private void ShowConnectionSettings()
@@ -187,7 +250,6 @@ namespace UD_WForms
         {
             try
             {
-                // Проверяем сервисы
                 if (!ServiceLocator.IsRegistered<IFlightService>() || !ServiceLocator.IsRegistered<IAirportService>())
                 {
                     MessageBox.Show("Не все необходимые сервисы зарегистрированы", "Ошибка",
@@ -196,11 +258,9 @@ namespace UD_WForms
                 }
 
                 var flightsForm = new FlightsForm();
-                //flightsForm.MdiParent = this;
-                //flightsForm.WindowState = FormWindowState.Maximized;
+                flightsForm.WindowState = FormWindowState.Maximized;
                 flightsForm.Show();
 
-                // Проверяем, загрузились ли данные
                 if (flightsForm.IsHandleCreated)
                 {
                     Console.WriteLine("Форма рейсов успешно создана");
@@ -208,7 +268,7 @@ namespace UD_WForms
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка открытия формы рейсов: {ex.Message}\n\nStack trace: {ex.StackTrace}", "Ошибка",
+                MessageBox.Show($"Ошибка открытия формы рейсов: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -216,16 +276,9 @@ namespace UD_WForms
         private void ShowAirportsForm()
         {
             AirportsForm airportsForm = new AirportsForm();
-            //airportsForm.MdiParent = this;
             airportsForm.Show();
         }
 
-        private void ShowSearchForm(string searchType)
-        {
-            MessageBox.Show($"Форма поиска {searchType} будет реализована в следующем этапе", "Информация",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-        
         private void ShowAddFlightForm()
         {
             try
@@ -234,7 +287,7 @@ namespace UD_WForms
                 var airportService = ServiceLocator.GetService<IAirportService>();
                 using (var form = new FlightForm(null, flightService, airportService))
                 {
-                   if (form.ShowDialog() == DialogResult.OK)
+                    if (form.ShowDialog() == DialogResult.OK)
                     {
                         RefreshAllData();
                     }
@@ -246,23 +299,22 @@ namespace UD_WForms
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private void RefreshAllData()
         {
             foreach (Form childForm in this.MdiChildren)
             {
-                // Просто активируем форму, если нужно обновить - формы сами обновляются при активации
                 childForm.Activate();
             }
 
             MessageBox.Show("Данные обновлены", "Обновление",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
         private void ShowDebugFlightForm()
         {
             var debugForm = new DebugFlightForm();
             debugForm.ShowDialog();
         }
-        
-        
     }
 }
