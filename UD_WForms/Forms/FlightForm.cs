@@ -15,11 +15,10 @@ namespace UD_WForms.Forms
 
         public FlightForm(string flightNumber, IFlightService flightService, IAirportService airportService)
         {
-            _flightService = flightService ?? throw new ArgumentNullException(nameof(flightService));
-            _airportService = airportService ?? throw new ArgumentNullException(nameof(airportService));
+            _flightService = flightService;
+            _airportService = airportService;
             _isEditMode = !string.IsNullOrEmpty(flightNumber);
 
-            // Инициализируем _flight ДО вызова InitializeComponent
             if (_isEditMode)
             {
                 LoadFlight(flightNumber);
@@ -40,15 +39,15 @@ namespace UD_WForms.Forms
                 };
             }
 
-            InitializeComponent();
+            InitializeForm();
         }
 
-        private void InitializeComponent()
+        private void InitializeForm()
         {
             this.SuspendLayout();
 
             this.Text = _isEditMode ? $"Редактирование рейса {_flight?.FlightNumber}" : "Добавление нового рейса";
-            this.Size = new System.Drawing.Size(500, 600);
+            this.Size = new System.Drawing.Size(550, 600);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -134,8 +133,7 @@ namespace UD_WForms.Forms
                 Left = leftControl,
                 Top = top,
                 Width = controlWidth,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                DisplayMember = "DisplayText"
+                DropDownStyle = ComboBoxStyle.DropDownList
             };
             top += spacing;
 
@@ -146,10 +144,12 @@ namespace UD_WForms.Forms
                 Left = leftControl,
                 Top = top,
                 Width = controlWidth,
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                DisplayMember = "DisplayText"
+                DropDownStyle = ComboBoxStyle.DropDownList
             };
             top += spacing;
+
+            // Загрузка аэропортов
+            LoadAirports(cmbDepartureAirport, cmbArrivalAirport);
 
             // Дата и время вылета
             var lblDeparture = new Label() { Text = "Вылет:*", Left = leftLabel, Top = top, Width = 130 };
@@ -248,9 +248,6 @@ namespace UD_WForms.Forms
                 Width = 80
             };
 
-            // Загрузка аэропортов
-            LoadAirports(cmbDepartureAirport, cmbArrivalAirport);
-
             // Обновление времени полета
             void UpdateFlightTime()
             {
@@ -283,8 +280,8 @@ namespace UD_WForms.Forms
                         cmbFlightType.SelectedItem?.ToString(),
                         txtAircraft.Text,
                         txtAirline.Text,
-                        cmbDepartureAirport.SelectedItem as AirportComboBoxItem,
-                        cmbArrivalAirport.SelectedItem as AirportComboBoxItem,
+                        GetSelectedAirportId(cmbDepartureAirport),
+                        GetSelectedAirportId(cmbArrivalAirport),
                         dtpDeparture.Value,
                         dtpArrival.Value,
                         cmbStatus.SelectedItem?.ToString(),
@@ -328,9 +325,8 @@ namespace UD_WForms.Forms
                 var airports = _airportService.GetAllAirports();
                 foreach (var airport in airports)
                 {
-                    var item = new AirportComboBoxItem(airport);
-                    cmbDeparture.Items.Add(item);
-                    cmbArrival.Items.Add(item);
+                    cmbDeparture.Items.Add($"{airport.IATACode} - {airport.Name} ({airport.City})");
+                    cmbArrival.Items.Add($"{airport.IATACode} - {airport.Name} ({airport.City})");
                 }
 
                 if (_isEditMode && _flight != null)
@@ -354,14 +350,31 @@ namespace UD_WForms.Forms
 
         private void SelectAirportInComboBox(ComboBox comboBox, int airportId)
         {
-            for (int i = 0; i < comboBox.Items.Count; i++)
+            var airports = _airportService.GetAllAirports();
+            var airport = airports.FirstOrDefault(a => a.AirportId == airportId);
+            if (airport != null)
             {
-                if (comboBox.Items[i] is AirportComboBoxItem item && item.Airport.AirportId == airportId)
+                string displayText = $"{airport.IATACode} - {airport.Name} ({airport.City})";
+                for (int i = 0; i < comboBox.Items.Count; i++)
                 {
-                    comboBox.SelectedIndex = i;
-                    break;
+                    if (comboBox.Items[i].ToString() == displayText)
+                    {
+                        comboBox.SelectedIndex = i;
+                        break;
+                    }
                 }
             }
+        }
+
+        private int GetSelectedAirportId(ComboBox comboBox)
+        {
+            if (comboBox.SelectedItem == null) return 0;
+
+            string selectedText = comboBox.SelectedItem.ToString();
+            string iataCode = selectedText.Split('-')[0].Trim();
+
+            var airport = _airportService.GetAirportByIATACode(iataCode);
+            return airport?.AirportId ?? 0;
         }
 
         private bool ValidateForm(TextBox txtFlightNumber, TextBox txtAircraft, TextBox txtAirline,
@@ -404,7 +417,7 @@ namespace UD_WForms.Forms
         }
 
         private void SaveFlight(string flightNumber, string flightType, string aircraft, string airline,
-                              AirportComboBoxItem departure, AirportComboBoxItem arrival,
+                              int departureAirportId, int arrivalAirportId,
                               DateTime departureDate, DateTime arrivalDate, string status,
                               int economySeats, int businessSeats)
         {
@@ -426,12 +439,8 @@ namespace UD_WForms.Forms
                 _flight.Status = status;
                 _flight.EconomySeats = economySeats;
                 _flight.BusinessSeats = businessSeats;
-
-                if (departure != null)
-                    _flight.DepartureAirportId = departure.Airport.AirportId;
-
-                if (arrival != null)
-                    _flight.ArrivalAirportId = arrival.Airport.AirportId;
+                _flight.DepartureAirportId = departureAirportId;
+                _flight.ArrivalAirportId = arrivalAirportId;
 
                 bool success;
                 if (_isEditMode)
@@ -491,23 +500,6 @@ namespace UD_WForms.Forms
             string[] airlines = { "SU", "S7", "U6", "FV", "DP" };
             string airline = airlines[rnd.Next(airlines.Length)];
             return $"{airline}{rnd.Next(1000, 9999)}";
-        }
-
-        // Вспомогательный класс для ComboBox
-        private class AirportComboBoxItem
-        {
-            public Airport Airport { get; set; }
-            public string DisplayText => $"{Airport.IATACode} - {Airport.Name} ({Airport.City}, {Airport.Country})";
-
-            public AirportComboBoxItem(Airport airport)
-            {
-                Airport = airport ?? throw new ArgumentNullException(nameof(airport));
-            }
-
-            public override string ToString()
-            {
-                return DisplayText;
-            }
         }
     }
 }

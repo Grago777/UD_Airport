@@ -31,6 +31,9 @@
     <Compile Update="Forms\SellTicketForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Forms\TicketEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Forms\TicketsForm.cs">
       <SubType>Form</SubType>
     </Compile>

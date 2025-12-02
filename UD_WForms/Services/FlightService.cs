@@ -84,43 +84,53 @@ namespace UD_WForms.Services
             if (string.IsNullOrEmpty(flightNumber))
                 return null;
 
-            using (var connection = ConnectionFactory.CreateConnection())
+            try
             {
-                connection.Open();
-                string query = @"
-            SELECT FlightNumber, FlightType, Aircraft, DepartureDate, ArrivalDate, 
-                   FlightTime, Status, DepartureAirportId, ArrivalAirportId, 
-                   EconomySeats, BusinessSeats, Airline
-            FROM Flight 
-            WHERE FlightNumber = @FlightNumber";
-
-                using (var cmd = new NpgsqlCommand(query, connection))
+                using (var connection = ConnectionFactory.CreateConnection())
                 {
-                    cmd.Parameters.AddWithValue("@FlightNumber", flightNumber);
+                    connection.Open();
+                    string query = @"
+                SELECT 
+                    FlightNumber, FlightType, Aircraft, DepartureDate, ArrivalDate, 
+                    FlightTime, Status, DepartureAirportId, ArrivalAirportId, 
+                    EconomySeats, BusinessSeats, Airline
+                FROM Flight 
+                WHERE FlightNumber = @FlightNumber";
 
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new NpgsqlCommand(query, connection))
                     {
-                        if (reader.Read())
+                        cmd.Parameters.AddWithValue("@FlightNumber", flightNumber);
+
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            return new Flight
+                            if (reader.Read())
                             {
-                                FlightNumber = reader.GetString(0),
-                                FlightType = reader.GetString(1),
-                                Aircraft = reader.GetString(2),
-                                DepartureDate = reader.GetDateTime(3),
-                                ArrivalDate = reader.GetDateTime(4),
-                                FlightTime = reader.GetTimeSpan(5),
-                                Status = reader.GetString(6),
-                                DepartureAirportId = reader.GetInt32(7),
-                                ArrivalAirportId = reader.GetInt32(8),
-                                EconomySeats = reader.GetInt32(9),
-                                BusinessSeats = reader.GetInt32(10),
-                                Airline = reader.GetString(11)
-                            };
+                                return new Flight
+                                {
+                                    FlightNumber = reader.GetString(0),
+                                    FlightType = reader.GetString(1),
+                                    Aircraft = reader.GetString(2),
+                                    DepartureDate = reader.GetDateTime(3),
+                                    ArrivalDate = reader.GetDateTime(4),
+                                    FlightTime = reader.GetTimeSpan(5),
+                                    Status = reader.GetString(6),
+                                    DepartureAirportId = reader.GetInt32(7),
+                                    ArrivalAirportId = reader.GetInt32(8),
+                                    EconomySeats = reader.GetInt32(9),
+                                    BusinessSeats = reader.GetInt32(10),
+                                    Airline = reader.GetString(11)
+                                };
+                            }
                         }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка в GetFlightByNumber: {ex.Message}");
+                throw new Exception($"Ошибка получения рейса: {ex.Message}");
+            }
+
             return null;
         }
         public bool CreateFlight(Flight flight) 
@@ -176,7 +186,61 @@ namespace UD_WForms.Services
             }
         }
 
-        public bool UpdateFlight(Flight flight) => false;
+        public bool UpdateFlight(Flight flight)
+        {
+            try
+            {
+                using (var connection = ConnectionFactory.CreateConnection())
+                {
+                    connection.Open();
+
+                    Console.WriteLine($"Обновление рейса: {flight.FlightNumber}");
+                    Console.WriteLine($"Аэропорт вылета: {flight.DepartureAirportId}, Прибытия: {flight.ArrivalAirportId}");
+
+                    string query = @"
+                UPDATE Flight 
+                SET FlightType = @FlightType, 
+                    Aircraft = @Aircraft, 
+                    DepartureDate = @DepartureDate, 
+                    ArrivalDate = @ArrivalDate,
+                    FlightTime = @FlightTime, 
+                    Status = @Status, 
+                    DepartureAirportId = @DepartureAirportId, 
+                    ArrivalAirportId = @ArrivalAirportId,
+                    EconomySeats = @EconomySeats, 
+                    BusinessSeats = @BusinessSeats,
+                    Airline = @Airline
+                WHERE FlightNumber = @FlightNumber";
+
+                    using (var cmd = new NpgsqlCommand(query, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@FlightNumber", flight.FlightNumber);
+                        cmd.Parameters.AddWithValue("@FlightType", flight.FlightType ?? "Регулярный");
+                        cmd.Parameters.AddWithValue("@Aircraft", flight.Aircraft ?? "");
+                        cmd.Parameters.AddWithValue("@DepartureDate", flight.DepartureDate);
+                        cmd.Parameters.AddWithValue("@ArrivalDate", flight.ArrivalDate);
+                        cmd.Parameters.AddWithValue("@FlightTime", flight.FlightTime);
+                        cmd.Parameters.AddWithValue("@Status", flight.Status ?? "По расписанию");
+                        cmd.Parameters.AddWithValue("@DepartureAirportId", flight.DepartureAirportId);
+                        cmd.Parameters.AddWithValue("@ArrivalAirportId", flight.ArrivalAirportId);
+                        cmd.Parameters.AddWithValue("@EconomySeats", flight.EconomySeats);
+                        cmd.Parameters.AddWithValue("@BusinessSeats", flight.BusinessSeats);
+                        cmd.Parameters.AddWithValue("@Airline", flight.Airline ?? "");
+
+                        int result = cmd.ExecuteNonQuery();
+                        Console.WriteLine($"Результат обновления: {result} строк affected");
+
+                        return result > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при обновлении рейса: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                throw new Exception($"Ошибка при обновлении рейса: {ex.Message}");
+            }
+        }
         public bool DeleteFlight(string flightNumber) => false;
         public List<Flight> SearchFlights(string searchTerm) => new List<Flight>();
         public List<Flight> GetFlightsByAirport(int airportId) => new List<Flight>();

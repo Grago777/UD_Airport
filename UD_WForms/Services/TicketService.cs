@@ -123,9 +123,13 @@ namespace UD_WForms.Services
                     connection.Open();
                     string query = @"
                         UPDATE Ticket 
-                        SET TicketNumber = @TicketNumber, FlightNumber = @FlightNumber, 
-                            PassengerId = @PassengerId, Class = @Class, Status = @Status, 
-                            Luggage = @Luggage, Price = @Price
+                        SET TicketNumber = @TicketNumber, 
+                            FlightNumber = @FlightNumber, 
+                            PassengerId = @PassengerId, 
+                            Class = @Class, 
+                            Status = @Status, 
+                            Luggage = @Luggage, 
+                            Price = @Price
                         WHERE RecordNumber = @RecordNumber";
 
                     using (var cmd = new NpgsqlCommand(query, connection))
@@ -229,5 +233,6 @@ namespace UD_WForms.Services
                 }
             }
         }
+        
     }
 }

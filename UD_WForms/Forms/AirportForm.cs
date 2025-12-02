@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using UD_WForms.Services;
 using UD_WForms.Models;
+using System.Text.RegularExpressions;
 
 namespace UD_WForms.Forms
 {
@@ -13,7 +14,6 @@ namespace UD_WForms.Forms
 
         public AirportForm(int airportId, IAirportService airportService)
         {
-            InitializeComponent();
             _airportService = airportService;
             _isEditMode = airportId > 0;
 
@@ -25,101 +25,128 @@ namespace UD_WForms.Forms
             {
                 _airport = new Airport();
             }
+
+            InitializeForm();
         }
 
-        private void InitializeComponent()
+        private void InitializeForm()
         {
             this.SuspendLayout();
 
-            this.Text = _isEditMode ? "Редактирование аэропорта" : "Добавление аэропорта";
-            this.Size = new System.Drawing.Size(400, 300);
+            this.Text = _isEditMode ? $"Редактирование аэропорта #{_airport.AirportId}" : "Добавление нового аэропорта";
+            this.Size = new System.Drawing.Size(450, 350);
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.BackColor = System.Drawing.Color.White;
 
-            // Поля формы
-            var lblName = new Label() { Text = "Название:*", Left = 10, Top = 20, Width = 120 };
-            var txtName = new TextBox() { Left = 140, Top = 20, Width = 200 };
+            // Основной контейнер
+            Panel mainPanel = new Panel();
+            mainPanel.Dock = DockStyle.Fill;
+            mainPanel.Padding = new Padding(20);
 
-            var lblIATA = new Label() { Text = "Код IATA:*", Left = 10, Top = 60, Width = 120 };
-            var txtIATA = new TextBox() { Left = 140, Top = 60, Width = 100, MaxLength = 3 };
-            txtIATA.CharacterCasing = CharacterCasing.Upper;
+            int top = 20;
+            int leftLabel = 20;
+            int leftControl = 150;
+            int controlWidth = 250;
+            int spacing = 40;
 
-            var lblCountry = new Label() { Text = "Страна:*", Left = 10, Top = 100, Width = 120 };
-            var txtCountry = new TextBox() { Left = 140, Top = 100, Width = 200 };
-
-            var lblCity = new Label() { Text = "Город:*", Left = 10, Top = 140, Width = 120 };
-            var txtCity = new TextBox() { Left = 140, Top = 140, Width = 200 };
-
-            var btnSave = new Button() { Text = "Сохранить", Left = 140, Top = 190, Width = 80 };
-            var btnCancel = new Button() { Text = "Отмена", Left = 230, Top = 190, Width = 80 };
-
-            // Загрузка данных для редактирования
-            if (_isEditMode)
+            // Заголовок
+            var lblTitle = new Label()
             {
-                txtName.Text = _airport.Name;
-                txtIATA.Text = _airport.IATACode;
-                txtCountry.Text = _airport.Country;
-                txtCity.Text = _airport.City;
-            }
+                Text = _isEditMode ? "РЕДАКТИРОВАНИЕ АЭРОПОРТА" : "НОВЫЙ АЭРОПОРТ",
+                Left = 20,
+                Top = top,
+                Width = 400,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.DarkBlue,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            };
+            top += 50;
 
+            // Название
+            var lblName = new Label() { Text = "Название:*", Left = leftLabel, Top = top, Width = 120 };
+            var txtName = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _airport.Name ?? "",
+                MaxLength = 100
+            };
+            top += spacing;
+
+            // Код IATA
+            var lblIATA = new Label() { Text = "Код IATA:*", Left = leftLabel, Top = top, Width = 120 };
+            var txtIATA = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = 100,
+                Text = _airport.IATACode ?? "",
+                MaxLength = 3,
+                CharacterCasing = CharacterCasing.Upper
+            };
+            top += spacing;
+
+            // Страна
+            var lblCountry = new Label() { Text = "Страна:*", Left = leftLabel, Top = top, Width = 120 };
+            var txtCountry = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _airport.Country ?? "",
+                MaxLength = 50
+            };
+            top += spacing;
+
+            // Город
+            var lblCity = new Label() { Text = "Город:*", Left = leftLabel, Top = top, Width = 120 };
+            var txtCity = new TextBox()
+            {
+                Left = leftControl,
+                Top = top,
+                Width = controlWidth,
+                Text = _airport.City ?? "",
+                MaxLength = 50
+            };
+            top += 60;
+
+            // Кнопки
+            var btnSave = new Button()
+            {
+                Text = _isEditMode ? "💾 Сохранить изменения" : "➕ Добавить аэропорт",
+                Left = leftControl,
+                Top = top,
+                Width = 150,
+                BackColor = System.Drawing.Color.LightGreen,
+                Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold)
+            };
             btnSave.Click += (s, e) =>
             {
-                if (string.IsNullOrEmpty(txtName.Text) || string.IsNullOrEmpty(txtIATA.Text) ||
-                    string.IsNullOrEmpty(txtCountry.Text) || string.IsNullOrEmpty(txtCity.Text))
+                if (ValidateForm(txtName, txtIATA, txtCountry, txtCity))
                 {
-                    MessageBox.Show("Заполните все обязательные поля", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (txtIATA.Text.Length != 3)
-                {
-                    MessageBox.Show("Код IATA должен состоять из 3 символов", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                _airport.Name = txtName.Text;
-                _airport.IATACode = txtIATA.Text.ToUpper();
-                _airport.Country = txtCountry.Text;
-                _airport.City = txtCity.Text;
-
-                try
-                {
-                    bool success;
-                    if (_isEditMode)
-                    {
-                        success = _airportService.UpdateAirport(_airport);
-                    }
-                    else
-                    {
-                        success = _airportService.CreateAirport(_airport);
-                    }
-
-                    if (success)
-                    {
-                        MessageBox.Show("Данные аэропорта успешно сохранены!", "Успех",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.DialogResult = DialogResult.OK;
-                        this.Close();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка при сохранении: {ex.Message}", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    SaveAirport(txtName.Text, txtIATA.Text, txtCountry.Text, txtCity.Text);
                 }
             };
 
+            var btnCancel = new Button()
+            {
+                Text = "Отмена",
+                Left = leftControl + 160,
+                Top = top,
+                Width = 80
+            };
             btnCancel.Click += (s, e) =>
             {
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
             };
 
-            this.Controls.AddRange(new Control[] {
+            mainPanel.Controls.AddRange(new Control[] {
+                lblTitle,
                 lblName, txtName,
                 lblIATA, txtIATA,
                 lblCountry, txtCountry,
@@ -127,6 +154,7 @@ namespace UD_WForms.Forms
                 btnSave, btnCancel
             });
 
+            this.Controls.Add(mainPanel);
             this.ResumeLayout(false);
         }
 
@@ -134,7 +162,9 @@ namespace UD_WForms.Forms
         {
             try
             {
+                Cursor = Cursors.WaitCursor;
                 _airport = _airportService.GetAirportById(airportId);
+
                 if (_airport == null)
                 {
                     MessageBox.Show("Аэропорт не найден", "Ошибка",
@@ -142,13 +172,127 @@ namespace UD_WForms.Forms
                     this.DialogResult = DialogResult.Cancel;
                     this.Close();
                 }
+
+                Cursor = Cursors.Default;
             }
             catch (Exception ex)
             {
+                Cursor = Cursors.Default;
                 MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.DialogResult = DialogResult.Cancel;
                 this.Close();
+            }
+        }
+
+        private bool ValidateForm(TextBox txtName, TextBox txtIATA, TextBox txtCountry, TextBox txtCity)
+        {
+            // Проверка названия
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                MessageBox.Show("Введите название аэропорта", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtName.Focus();
+                return false;
+            }
+
+            if (txtName.Text.Length < 3)
+            {
+                MessageBox.Show("Название аэропорта должно содержать не менее 3 символов", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtName.Focus();
+                return false;
+            }
+
+            // Проверка кода IATA
+            if (string.IsNullOrWhiteSpace(txtIATA.Text))
+            {
+                MessageBox.Show("Введите код IATA", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtIATA.Focus();
+                return false;
+            }
+
+            if (txtIATA.Text.Length != 3)
+            {
+                MessageBox.Show("Код IATA должен состоять из 3 символов", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtIATA.Focus();
+                return false;
+            }
+
+            var iataRegex = new Regex(@"^[A-Z]{3}$");
+            if (!iataRegex.IsMatch(txtIATA.Text))
+            {
+                MessageBox.Show("Код IATA должен содержать только латинские буквы", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtIATA.Focus();
+                return false;
+            }
+
+            // Проверка страны
+            if (string.IsNullOrWhiteSpace(txtCountry.Text))
+            {
+                MessageBox.Show("Введите страну", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCountry.Focus();
+                return false;
+            }
+
+            // Проверка города
+            if (string.IsNullOrWhiteSpace(txtCity.Text))
+            {
+                MessageBox.Show("Введите город", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtCity.Focus();
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SaveAirport(string name, string iata, string country, string city)
+        {
+            try
+            {
+                // Обновляем данные аэропорта
+                _airport.Name = name.Trim();
+                _airport.IATACode = iata.Trim().ToUpper();
+                _airport.Country = country.Trim();
+                _airport.City = city.Trim();
+
+                bool success;
+
+                if (_isEditMode)
+                {
+                    success = _airportService.UpdateAirport(_airport);
+                }
+                else
+                {
+                    success = _airportService.CreateAirport(_airport);
+                }
+
+                if (success)
+                {
+                    string message = _isEditMode ?
+                        "Данные аэропорта успешно обновлены!" :
+                        "Новый аэропорт успешно добавлен!";
+
+                    MessageBox.Show(message, "Успех",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Не удалось сохранить данные", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

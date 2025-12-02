@@ -420,10 +420,17 @@ namespace UD_WForms.Forms
                 if (!dataGridView.Columns.Contains("FlightNumber")) return;
 
                 string flightNumber = dataGridView.Rows[e.RowIndex].Cells["FlightNumber"].Value?.ToString();
-                if (string.IsNullOrEmpty(flightNumber)) return;
+                if (string.IsNullOrEmpty(flightNumber))
+                {
+                    Console.WriteLine("Номер рейса не найден в строке");
+                    return;
+                }
+
+                Console.WriteLine($"Выбран рейс для редактирования: {flightNumber}");
 
                 if (dataGridView.Columns[e.ColumnIndex].Name == "Edit")
                 {
+                    Console.WriteLine($"Открытие формы редактирования для рейса: {flightNumber}");
                     ShowFlightForm(flightNumber);
                 }
                 else if (dataGridView.Columns[e.ColumnIndex].Name == "Delete")
@@ -433,6 +440,7 @@ namespace UD_WForms.Forms
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ошибка обработки клика: {ex.Message}");
                 MessageBox.Show($"Ошибка обработки клика: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

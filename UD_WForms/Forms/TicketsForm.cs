@@ -345,8 +345,7 @@ namespace UD_WForms.Forms
 
                 if (dataGridView.Columns[e.ColumnIndex].Name == "Edit")
                 {
-                    MessageBox.Show($"Редактирование билета {recordNumber} будет реализовано позже", "Информация",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowEditTicketForm(recordNumber);
                 }
                 else if (dataGridView.Columns[e.ColumnIndex].Name == "Delete")
                 {
@@ -356,6 +355,28 @@ namespace UD_WForms.Forms
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка обработки клика: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void ShowEditTicketForm(int recordNumber)
+        {
+            try
+            {
+                var ticketService = ServiceLocator.GetService<ITicketService>();
+                var passengerService = ServiceLocator.GetService<IPassengerService>();
+                var flightService = ServiceLocator.GetService<IFlightService>();
+
+                using (var form = new TicketEditForm(recordNumber, ticketService, passengerService, flightService))
+                {
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        LoadTickets();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка открытия формы редактирования: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
