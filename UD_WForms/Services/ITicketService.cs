@@ -11,5 +11,7 @@ namespace UD_WForms.Services
         bool UpdateTicket(Ticket ticket);
         bool DeleteTicket(int recordNumber);
         List<Ticket> SearchTickets(string searchTerm);
+        //TicketService.TicketData GetTicketById(int ticketId);
     }
+
 }

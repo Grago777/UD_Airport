@@ -96,6 +96,13 @@ namespace UD_WForms
 
             ticketsMenu.DropDownItems.Add(manageTicketsItem);
             ticketsMenu.DropDownItems.Add(searchTicketsItem);
+            // В меню Билеты добавляем:
+            /*ToolStripMenuItem sellTicketItem = new ToolStripMenuItem("💳 Продать билет");
+            sellTicketItem.Click += (s, e) => ShowSellTicketForm();
+
+            // В меню Отчеты добавляем:
+            ToolStripMenuItem dailyReportItem = new ToolStripMenuItem("📈 Отчеты и аналитика");
+            dailyReportItem.Click += (s, e) => ShowReportsForm();*/
 
             // Элементы меню Пассажиры
             ToolStripMenuItem managePassengersItem = new ToolStripMenuItem("Управление пассажирами");
@@ -260,5 +267,7 @@ namespace UD_WForms
             var debugForm = new DebugFlightForm();
             debugForm.ShowDialog();
         }
+        
+        
     }
 }

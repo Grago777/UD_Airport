@@ -25,7 +25,7 @@
     <Compile Update="Forms\PassengersForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\TicketForm.cs">
+    <Compile Update="Forms\TicketsForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Update="MainForm.cs">
