@@ -213,5 +213,21 @@ namespace UD_WForms.Services
 
             return tickets;
         }
+        public int GetSoldTicketsCount(string flightNumber, string ticketClass)
+        {
+            using (var connection = ConnectionFactory.CreateConnection())
+            {
+                connection.Open();
+                string query = "SELECT COUNT(*) FROM Ticket WHERE FlightNumber = @FlightNumber AND Class = @Class";
+
+                using (var cmd = new NpgsqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@FlightNumber", flightNumber);
+                    cmd.Parameters.AddWithValue("@Class", ticketClass);
+
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+                }
+            }
+        }
     }
 }

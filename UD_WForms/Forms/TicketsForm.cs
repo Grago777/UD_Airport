@@ -87,7 +87,7 @@ namespace UD_WForms.Forms
             btnExport = new Button() { Text = "📊 Экспорт", Left = 5, Top = 70, Size = new System.Drawing.Size(80, 23) };
             btnExport.Click += BtnExport_Click;
 
-            btnClose = new Button() { Text = "Закрыть", Left = 95, Top = 70, Size = new System.Drawing.Size(60, 23) };
+            btnClose = new Button() { Text = "Закрыть", Left = 95, Top = 70, Size = new System.Drawing.Size(80, 23) };
             btnClose.Click += (s, e) => this.Close();
 
             searchPanel.Controls.AddRange(new Control[] {
@@ -313,8 +313,25 @@ namespace UD_WForms.Forms
 
         private void BtnAdd_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Форма продажи билета будет реализована позже", "Информация",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+            ShowSellTicketForm();
+        }
+        private void ShowSellTicketForm()
+        {
+            try
+            {
+                using (var form = new SellTicketForm())
+                {
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        LoadTickets(); // Обновляем список билетов после продажи
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка открытия формы продажи: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void DataGridView_CellClick(object sender, DataGridViewCellEventArgs e)

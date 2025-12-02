@@ -98,7 +98,7 @@ namespace UD_WForms.Forms
             btnExport = new Button() { Text = "📊 Экспорт", Left = 5, Top = 70, Size = new System.Drawing.Size(80, 23) };
             btnExport.Click += BtnExport_Click;
 
-            btnClose = new Button() { Text = "Закрыть", Left = 95, Top = 70, Size = new System.Drawing.Size(60, 23) };
+            btnClose = new Button() { Text = "Закрыть", Left = 95, Top = 70, Size = new System.Drawing.Size(80, 23) };
             btnClose.Click += (s, e) => this.Close();
 
             searchPanel.Controls.AddRange(new Control[] {
