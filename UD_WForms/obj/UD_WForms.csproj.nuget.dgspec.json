@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj": {}
+    "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\UD_WForms.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj": {
+    "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\UD_WForms.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
+        "projectUniqueName": "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
         "projectName": "UD_WForms",
-        "projectPath": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
+        "projectPath": "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
         "packagesPath": "C:\\Users\\Pc\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\obj\\",
+        "outputPath": "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

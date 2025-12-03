@@ -14,15 +14,16 @@ namespace UD_WForms
         private StatusStrip _statusStrip;
         private MenuStrip _mainMenu;
         private Label _welcomeLabel;
+        private string _databaseName = "aviadb";
 
         public MainForm()
         {
             InitializeComponent();
 
             // Проверяем подключение перед инициализацией БД
-            if (DatabaseInitializer.TestDatabaseConnection())
+            if (DatabaseInitializer.TestDatabaseConnection(_databaseName))
             {
-                InitializeDatabase();
+                InitializeDatabase(_databaseName);
             }
             else
             {
@@ -30,13 +31,19 @@ namespace UD_WForms
                 var settingsForm = new ConnectionSettingsForm();
                 if (settingsForm.ShowDialog() == DialogResult.OK)
                 {
-                    if (DatabaseInitializer.TestDatabaseConnection())
+                    // Получаем новое имя БД из настроек (если оно там есть)
+                    if (!string.IsNullOrEmpty(settingsForm.DatabaseName))
                     {
-                        InitializeDatabase();
+                        _databaseName = settingsForm.DatabaseName;
+                    }
+
+                    if (DatabaseInitializer.TestDatabaseConnection(_databaseName))
+                    {
+                        InitializeDatabase(_databaseName);
                     }
                     else
                     {
-                        MessageBox.Show("Не удалось подключиться к базе данных. Приложение будет закрыто.", "Ошибка",
+                        MessageBox.Show($"Не удалось подключиться к базе данных '{_databaseName}'. Приложение будет закрыто.", "Ошибка",
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Application.Exit();
                     }
@@ -48,11 +55,11 @@ namespace UD_WForms
             }
         }
 
-        private void InitializeDatabase()
+        private void InitializeDatabase(string databaseName)
         {
             try
             {
-                DatabaseInitializer.InitializeDatabase();
+                DatabaseInitializer.InitializeDatabase(databaseName);
             }
             catch (Exception ex)
             {
@@ -67,7 +74,7 @@ namespace UD_WForms
 
             // Основные свойства формы
             this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Text = "Авиакасса - Система управления билетами";
+            this.Text = $"Авиакасса - Система управления билетами [{_databaseName}]";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new System.Drawing.Size(800, 600);
@@ -96,7 +103,8 @@ namespace UD_WForms
 
             // Приветственный текст
             _welcomeLabel = new Label();
-            _welcomeLabel.Text = "Добро пожаловать в систему авиакассы!\n\n" +
+            _welcomeLabel.Text = $"Добро пожаловать в систему авиакассы!\n\n" +
+                               $"Текущая база данных: {_databaseName}\n\n" +
                                "Для работы с системой выберите соответствующий раздел в меню.\n\n" +
                                "Доступные модули:\n" +
                                "• Билеты - управление продажей билетов\n" +
@@ -138,7 +146,7 @@ namespace UD_WForms
             // Статус бар (автоматический размер)
             _statusStrip = new StatusStrip();
             ToolStripStatusLabel statusLabel = new ToolStripStatusLabel();
-            statusLabel.Text = "Готов к работе";
+            statusLabel.Text = $"Готов к работе (БД: {_databaseName})";
             statusLabel.Spring = true;  // Растягивается по ширине
             statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             _statusStrip.Items.Add(statusLabel);
@@ -231,7 +239,46 @@ namespace UD_WForms
         private void ShowConnectionSettings()
         {
             var settingsForm = new ConnectionSettingsForm();
-            settingsForm.ShowDialog();
+            if (settingsForm.ShowDialog() == DialogResult.OK)
+            {
+                // Обновляем имя БД, если оно изменилось
+                if (!string.IsNullOrEmpty(settingsForm.DatabaseName) && settingsForm.DatabaseName != _databaseName)
+                {
+                    _databaseName = settingsForm.DatabaseName;
+
+                    // Обновляем заголовок формы
+                    this.Text = $"Авиакасса - Система управления билетами [{_databaseName}]";
+
+                    // Обновляем статус бар
+                    UpdateStatus($"Готов к работе (БД: {_databaseName})");
+
+                    // Обновляем приветственный текст
+                    _welcomeLabel.Text = _welcomeLabel.Text.Replace($"Текущая база данных: {_databaseName}",
+                        $"Текущая база данных: {_databaseName}");
+
+                    // Переинициализируем сервисы с новой БД
+                    InitializeServices();
+                }
+            }
+        }
+        private void InitializeServices()
+        {
+            try
+            {
+                // Перерегистрируем сервисы с новой БД
+                ServiceLocator.Register<IPassengerService>(new PassengerService());
+                ServiceLocator.Register<ITicketService>(new TicketService());
+                ServiceLocator.Register<IFlightService>(new FlightService());
+                ServiceLocator.Register<IAirportService>(new AirportService());
+
+                MessageBox.Show($"Сервисы переинициализированы для базы данных '{_databaseName}'", "Информация",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка инициализации сервисов: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void ShowTicketsForm()

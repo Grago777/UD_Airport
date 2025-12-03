@@ -6,24 +6,24 @@ namespace UD_WForms.Models.Database
 {
     public static class DatabaseInitializer
     {
-        public static void InitializeDatabase()
+        public static void InitializeDatabase(string databaseName = "aviadb2")
         {
             try
             {
                 // Сначала создаем базу данных, если она не существует
-                bool databaseCreated = CreateDatabaseIfNotExists();
+                bool databaseCreated = CreateDatabaseIfNotExists(databaseName);
 
-                // Если база данных была создана, даем время на её инициализацию
                 if (databaseCreated)
                 {
-                    System.Threading.Thread.Sleep(1000); // Небольшая задержка для создания БД
+                    // Даем время на создание БД
+                    System.Threading.Thread.Sleep(2000);
                 }
 
                 // Затем создаем таблицы
-                CreateTables();
+                CreateTables(databaseName);
 
-                //MessageBox.Show("База данных успешно инициализирована!", "Успех",
-                //MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"База данных '{databaseName}' успешно инициализирована!", "Успех",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
@@ -32,11 +32,71 @@ namespace UD_WForms.Models.Database
             }
         }
 
+        private static bool CreateDatabaseIfNotExists(string databaseName)
+        {
+            try
+            {
+                // Подключаемся к системной БД postgres
+                using (var connection = new NpgsqlConnection(ConnectionFactory.GetConnectionString("postgres")))
+                {
+                    connection.Open();
+
+                    // Проверяем существование базы данных
+                    string checkDbQuery = $"SELECT 1 FROM pg_database WHERE datname = '{databaseName}'";
+                    using (var checkCmd = new NpgsqlCommand(checkDbQuery, connection))
+                    {
+                        var result = checkCmd.ExecuteScalar();
+
+                        // Если база данных не существует, создаем её
+                        if (result == null)
+                        {
+                            // Сначала закрываем все существующие подключения к этой БД (если есть)
+                            string terminateConnections = $@"
+                                SELECT pg_terminate_backend(pg_stat_activity.pid)
+                                FROM pg_stat_activity
+                                WHERE pg_stat_activity.datname = '{databaseName}'
+                                AND pid <> pg_backend_pid();";
+                            
+                            try
+                            {
+                                using (var terminateCmd = new NpgsqlCommand(terminateConnections, connection))
+                                {
+                                    terminateCmd.ExecuteNonQuery();
+                                }
+                            }
+                            catch { /* Игнорируем ошибки при закрытии соединений */ }
+
+                            // Создаем базу данных
+                            string createDbQuery = $"CREATE DATABASE \"{databaseName}\" ENCODING 'UTF8'";
+                            using (var createCmd = new NpgsqlCommand(createDbQuery, connection))
+                            {
+                                createCmd.ExecuteNonQuery();
+                                MessageBox.Show($"База данных '{databaseName}' создана успешно!", "Информация",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                return true; // База была создана
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"База данных '{databaseName}' уже существует");
+                            return false; // База уже существовала
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при создании базы данных: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+        }
+
         private static bool CreateDatabaseIfNotExists()
         {
             // Строка подключения к системной базе данных postgres
             string masterConnectionString = ConnectionFactory.GetConnectionString()
-                .Replace("Database=aviadb", "Database=postgres");
+                .Replace($"Database=aviadb", "Database=postgres");
 
             using (var connection = new NpgsqlConnection(masterConnectionString))
             {
@@ -55,8 +115,8 @@ namespace UD_WForms.Models.Database
                         using (var createCmd = new NpgsqlCommand(createDbQuery, connection))
                         {
                             createCmd.ExecuteNonQuery();
-                            //MessageBox.Show("База данных 'aviadb' создана успешно!", "Информация",
-                                //MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show("База данных 'aviadb' создана успешно!", "Информация",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
                             return true; // База была создана
                         }
                     }
@@ -65,56 +125,49 @@ namespace UD_WForms.Models.Database
             return false; // База уже существовала
         }
 
-        private static void CreateTables()
+        private static void CreateTables(string databaseName)
         {
-            using (var connection = ConnectionFactory.CreateConnection())
+            using (var connection = ConnectionFactory.CreateConnection(databaseName))
             {
                 try
                 {
                     connection.Open();
-                    //MessageBox.Show("Подключение к базе данных aviadb установлено", "Информация",
-                        //MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     // Создание таблицы Аэропорт
                     string createAirportTable = @"
-                        CREATE TABLE IF NOT EXISTS Airport (
-                            AirportId SERIAL PRIMARY KEY,
-                            Name VARCHAR(100) NOT NULL,
-                            IATACode VARCHAR(3) UNIQUE NOT NULL,
-                            Country VARCHAR(50) NOT NULL,
-                            City VARCHAR(50) NOT NULL
-                        );";
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'airport') THEN
+                                CREATE TABLE Airport (
+                                    AirportId SERIAL PRIMARY KEY,
+                                    Name VARCHAR(100) NOT NULL,
+                                    IATACode VARCHAR(3) UNIQUE NOT NULL,
+                                    Country VARCHAR(50) NOT NULL,
+                                    City VARCHAR(50) NOT NULL
+                                );
+                            END IF;
+                        END $$;";
 
                     // Создание таблицы Пассажир
                     string createPassengerTable = @"
-                        CREATE TABLE IF NOT EXISTS Passenger (
-                            PassengerId SERIAL PRIMARY KEY,
-                            FullName VARCHAR(100) NOT NULL,
-                            PhoneNumber VARCHAR(20),
-                            Email VARCHAR(100),
-                            PassportData VARCHAR(50) UNIQUE NOT NULL
-                        );";
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'passenger') THEN
+                                CREATE TABLE Passenger (
+                                    PassengerId SERIAL PRIMARY KEY,
+                                    FullName VARCHAR(100) NOT NULL,
+                                    PhoneNumber VARCHAR(20),
+                                    Email VARCHAR(100),
+                                    PassportData VARCHAR(50) UNIQUE NOT NULL
+                                );
+                            END IF;
+                        END $$;";
 
                     // Создание таблицы Рейс
                     string createFlightTable = @"
-                        CREATE TABLE IF NOT EXISTS Flight (
-                            FlightNumber VARCHAR(10) PRIMARY KEY,
-                            FlightType VARCHAR(20) NOT NULL,
-                            Aircraft VARCHAR(50) NOT NULL,
-                            DepartureDate TIMESTAMP NOT NULL,
-                            ArrivalDate TIMESTAMP NOT NULL,
-                            FlightTime INTERVAL NOT NULL,
-                            Status VARCHAR(20) NOT NULL,
-                            DepartureAirportId INTEGER REFERENCES Airport(AirportId),
-                            ArrivalAirportId INTEGER REFERENCES Airport(AirportId),
-                            EconomySeats INTEGER NOT NULL,
-                            BusinessSeats INTEGER NOT NULL,
-                            Airline VARCHAR(50) NOT NULL
-                        );";
-                    string checkFlightTable = @"
                         DO $$
                         BEGIN 
-                            IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'flight') THEN
+                            IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'flight') THEN
                                 CREATE TABLE Flight (
                                     FlightNumber VARCHAR(10) PRIMARY KEY,
                                     FlightType VARCHAR(20) NOT NULL,
@@ -128,35 +181,37 @@ namespace UD_WForms.Models.Database
                                     EconomySeats INTEGER NOT NULL,
                                     BusinessSeats INTEGER NOT NULL,
                                     Airline VARCHAR(50) NOT NULL
-                                 );
+                                );
                             END IF;
                         END $$;";
-                     ExecuteNonQuery(connection, checkFlightTable);
 
                     // Создание таблицы Билет
                     string createTicketTable = @"
-                        CREATE TABLE IF NOT EXISTS Ticket (
-                            RecordNumber SERIAL PRIMARY KEY,
-                            TicketNumber VARCHAR(20) UNIQUE NOT NULL,
-                            FlightNumber VARCHAR(10) REFERENCES Flight(FlightNumber),
-                            PassengerId INTEGER REFERENCES Passenger(PassengerId),
-                            Class VARCHAR(20) NOT NULL,
-                            Status VARCHAR(20) NOT NULL,
-                            Luggage DECIMAL(5,2) DEFAULT 0,
-                            Price DECIMAL(10,2) NOT NULL
-                        );";
+                        DO $$
+                        BEGIN
+                            IF NOT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'ticket') THEN
+                                CREATE TABLE Ticket (
+                                    RecordNumber SERIAL PRIMARY KEY,
+                                    TicketNumber VARCHAR(20) UNIQUE NOT NULL,
+                                    FlightNumber VARCHAR(10) REFERENCES Flight(FlightNumber),
+                                    PassengerId INTEGER REFERENCES Passenger(PassengerId),
+                                    Class VARCHAR(20) NOT NULL,
+                                    Status VARCHAR(20) NOT NULL,
+                                    Luggage DECIMAL(5,2) DEFAULT 0,
+                                    Price DECIMAL(10,2) NOT NULL
+                                );
+                            END IF;
+                        END $$;";
 
-                    // Выполняем создание таблиц с проверкой
-                    ExecuteNonQuery(connection, createAirportTable, "Таблица Airport");
-                    ExecuteNonQuery(connection, createPassengerTable, "Таблица Passenger");
-                    ExecuteNonQuery(connection, createFlightTable, "Таблица Flight");
-                    ExecuteNonQuery(connection, createTicketTable, "Таблица Ticket");
+                    // Выполняем создание таблиц
+                    ExecuteNonQuery(connection, createAirportTable);
+                    ExecuteNonQuery(connection, createPassengerTable);
+                    ExecuteNonQuery(connection, createFlightTable);
+                    ExecuteNonQuery(connection, createTicketTable);
 
-                    // Добавляем тестовые данные, если таблицы пустые
+                    // Добавляем тестовые данные
                     InsertTestData(connection);
 
-                    //MessageBox.Show("Все таблицы успешно созданы!", "Успех",
-                        //MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception ex)
                 {
@@ -176,7 +231,7 @@ namespace UD_WForms.Models.Database
                     command.ExecuteNonQuery();
                     if (!string.IsNullOrEmpty(tableName))
                     {
-                        //Console.WriteLine($"{tableName} создана/проверена успешно");
+                        Console.WriteLine($"{tableName} создана/проверена успешно");
                     }
                 }
             }
@@ -266,20 +321,35 @@ namespace UD_WForms.Models.Database
                     long count = (long)cmd.ExecuteScalar();
                     if (count == 0)
                     {
-                        // Добавляем тестовые билеты
+                        // Сначала проверяем, что рейсы существуют
+                        string checkFlightNumbers = @"
+                    SELECT COUNT(*) FROM Flight 
+                    WHERE FlightNumber IN ('SU100', 'SU200', 'SU300', 'SU400')";
+
+                        using (var checkFlightCmd = new NpgsqlCommand(checkFlightNumbers, connection))
+                        {
+                            long flightCount = (long)checkFlightCmd.ExecuteScalar();
+
+                            if (flightCount < 4)
+                            {
+                                MessageBox.Show($"Найдено только {flightCount} из 4 требуемых рейсов. Тестовые билеты не будут добавлены.",
+                                    "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return;
+                            }
+                        }
+
+                        // Добавляем тестовые билеты с корректными номерами рейсов
                         string insertTickets = @"
-                            INSERT INTO Ticket (TicketNumber, FlightNumber, PassengerId, Class, Status, Luggage, Price) VALUES
-                            ('TK240120001', 'SU100', 1, 'Бизнес', 'Активен', 20.00, 25000.00),
-                            ('TK240120002', 'SU100', 2, 'Эконом', 'Активен', 10.00, 8000.00),
-                            ('TK240120003', 'SU200', 3, 'Эконом', 'Активен', 15.00, 12000.00),
-                            ('TK240120004', 'SU300', 1, 'Бизнес', 'Использован', 25.00, 30000.00),
-                            ('TK240120005', 'SU400', 2, 'Эконом', 'Возвращен', 5.00, 7000.00);";
+                    INSERT INTO Ticket (TicketNumber, FlightNumber, PassengerId, Class, Status, Luggage, Price) VALUES
+                    ('TK240120001', 'SU100', 1, 'Бизнес', 'Активен', 20.00, 25000.00),
+                    ('TK240120002', 'SU100', 2, 'Эконом', 'Активен', 10.00, 8000.00),
+                    ('TK240120003', 'SU200', 3, 'Эконом', 'Активен', 15.00, 12000.00),
+                    ('TK240120004', 'SU300', 1, 'Бизнес', 'Использован', 25.00, 30000.00),
+                    ('TK240120005', 'SU400', 2, 'Эконом', 'Возвращен', 5.00, 7000.00);";
 
                         ExecuteNonQuery(connection, insertTickets);
                     }
                 }
-
-
             }
             catch (Exception ex)
             {
@@ -307,11 +377,11 @@ namespace UD_WForms.Models.Database
             }
         }
 
-        public static bool TestDatabaseConnection()
+        public static bool TestDatabaseConnection(string databaseName)
         {
             try
             {
-                using (var connection = ConnectionFactory.CreateConnection())
+                using (var connection = ConnectionFactory.CreateConnection(databaseName))
                 {
                     connection.Open();
                     return true;

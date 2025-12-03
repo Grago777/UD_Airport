@@ -11,6 +11,7 @@ namespace UD_WForms.Forms
             InitializeComponent();
             LoadCurrentSettings();
         }
+        public string DatabaseName { get; private set; }
 
         private void InitializeComponent()
         {
@@ -31,7 +32,7 @@ namespace UD_WForms.Forms
             var txtPort = new TextBox() { Left = 120, Top = 60, Width = 200, Text = "5432" };
 
             var lblDatabase = new Label() { Text = "База данных:", Left = 10, Top = 100, Width = 100 };
-            var txtDatabase = new TextBox() { Left = 120, Top = 100, Width = 200, Text = "AviaDB" };
+            var txtDatabase = new TextBox() { Left = 120, Top = 100, Width = 200, Text = "aviadb" };
 
             var lblUsername = new Label() { Text = "Пользователь:", Left = 10, Top = 140, Width = 100 };
             var txtUsername = new TextBox() { Left = 120, Top = 140, Width = 200, Text = "postgres" };
