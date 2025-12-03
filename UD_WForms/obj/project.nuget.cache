@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NvUJ/I9MlD4=",
+  "dgSpecHash": "n6RpyH9ADDA=",
   "success": true,
-  "projectFilePath": "E:\\Институт\\Кузнецов\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
+  "projectFilePath": "C:\\Users\\Pc\\Documents\\UD_Airport\\UD_WForms\\UD_WForms.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Pc\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\Pc\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",

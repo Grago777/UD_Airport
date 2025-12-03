@@ -14,6 +14,9 @@ namespace UD_WForms
         private StatusStrip _statusStrip;
         private MenuStrip _mainMenu;
         private Label _welcomeLabel;
+        private ToolStripStatusLabel _statusLabel;
+
+        // Добавляем поле для хранения имени БД
         private string _databaseName = "aviadb";
 
         public MainForm()
@@ -31,7 +34,7 @@ namespace UD_WForms
                 var settingsForm = new ConnectionSettingsForm();
                 if (settingsForm.ShowDialog() == DialogResult.OK)
                 {
-                    // Получаем новое имя БД из настроек (если оно там есть)
+                    // Получаем новое имя БД из настроек
                     if (!string.IsNullOrEmpty(settingsForm.DatabaseName))
                     {
                         _databaseName = settingsForm.DatabaseName;
@@ -60,11 +63,14 @@ namespace UD_WForms
             try
             {
                 DatabaseInitializer.InitializeDatabase(databaseName);
+                // Обновляем статус после успешной инициализации
+                UpdateStatus($"База данных '{databaseName}' инициализирована");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка инициализации базы данных: {ex.Message}\nПриложение будет работать в ограниченном режиме.", "Ошибка",
+                MessageBox.Show($"Ошибка инициализации базы данных '{databaseName}': {ex.Message}\nПриложение будет работать в ограниченном режиме.", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                UpdateStatus($"Ошибка инициализации БД '{databaseName}'");
             }
         }
 
@@ -74,7 +80,7 @@ namespace UD_WForms
 
             // Основные свойства формы
             this.ClientSize = new System.Drawing.Size(1000, 700);
-            this.Text = $"Авиакасса - Система управления билетами [{_databaseName}]";
+            this.Text = $"Авиакасса - Система управления билетами (БД: {_databaseName})";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.WindowState = FormWindowState.Maximized;
             this.MinimumSize = new System.Drawing.Size(800, 600);
@@ -90,7 +96,7 @@ namespace UD_WForms
             _mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Статус бар
             _mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
-            // Меню (автоматический размер)
+            // Меню (автоматический размер) с отображением БД
             _mainMenu = CreateMainMenu();
             _mainMenu.Dock = DockStyle.Fill;
 
@@ -101,20 +107,20 @@ namespace UD_WForms
             _contentPanel.AutoScroll = true;
             _contentPanel.Padding = new Padding(40);
 
-            // Приветственный текст
+            // Приветственный текст с отображением БД
             _welcomeLabel = new Label();
             _welcomeLabel.Text = $"Добро пожаловать в систему авиакассы!\n\n" +
-                               $"Текущая база данных: {_databaseName}\n\n" +
+                               $"🛢️ Текущая база данных: <b>{_databaseName}</b>\n\n" +
                                "Для работы с системой выберите соответствующий раздел в меню.\n\n" +
                                "Доступные модули:\n" +
-                               "• Билеты - управление продажей билетов\n" +
-                               "• Пассажиры - база данных пассажиров\n" +
-                               "• Рейсы - расписание и управление рейсами\n" +
-                               "• Аэропорты - справочник аэропортов";
-            _welcomeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular);
+                               "• 📋 Билеты - управление продажей билетов\n" +
+                               "• 👥 Пассажиры - база данных пассажиров\n" +
+                               "• ✈️ Рейсы - расписание и управление рейсами\n" +
+                               "• 🏢 Аэропорты - справочник аэропортов";
+            _welcomeLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular);
             _welcomeLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             _welcomeLabel.Dock = DockStyle.Fill;
-            _welcomeLabel.AutoSize = true;  // Автоматический размер текста
+            _welcomeLabel.AutoSize = true;
             _welcomeLabel.Padding = new Padding(20);
 
             // Создаем панель для центрирования текста
@@ -143,13 +149,32 @@ namespace UD_WForms
             centerPanel.Controls.Add(tableCenter);
             _contentPanel.Controls.Add(centerPanel);
 
-            // Статус бар (автоматический размер)
+            // Статус бар с отображением информации о БД
             _statusStrip = new StatusStrip();
-            ToolStripStatusLabel statusLabel = new ToolStripStatusLabel();
-            statusLabel.Text = $"Готов к работе (БД: {_databaseName})";
-            statusLabel.Spring = true;  // Растягивается по ширине
-            statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            _statusStrip.Items.Add(statusLabel);
+
+            // Левый статус - информация о БД
+            ToolStripStatusLabel dbLabel = new ToolStripStatusLabel();
+            dbLabel.Text = $"🛢️ БД: {_databaseName}";
+            dbLabel.BorderSides = ToolStripStatusLabelBorderSides.Right;
+            dbLabel.BorderStyle = Border3DStyle.Etched;
+            dbLabel.AutoSize = false;
+            dbLabel.Width = 150;
+
+            // Основной статус
+            _statusLabel = new ToolStripStatusLabel();
+            _statusLabel.Text = "Готов к работе";
+            _statusLabel.Spring = true;  // Растягивается по ширине
+            _statusLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+
+            // Правая часть - информация о пользователе или время
+            ToolStripStatusLabel timeLabel = new ToolStripStatusLabel();
+            timeLabel.Text = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+            timeLabel.AutoSize = false;
+            timeLabel.Width = 120;
+
+            _statusStrip.Items.AddRange(new ToolStripItem[] {
+                dbLabel, _statusLabel, timeLabel
+            });
             _statusStrip.Dock = DockStyle.Fill;
 
             // Добавляем элементы в главный контейнер
@@ -163,6 +188,14 @@ namespace UD_WForms
             // Устанавливаем MainMenuStrip для корректной работы меню
             this.MainMenuStrip = _mainMenu;
 
+            //// Таймер для обновления времени в статус баре
+            //Timer timer = new Timer();
+            //timer.Interval = 60000; // 1 минута
+            //timer.Tick += (s, e) => {
+            //    timeLabel.Text = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+            //};
+            //timer.Start();
+
             this.ResumeLayout(true);
             this.PerformLayout();
         }
@@ -171,12 +204,22 @@ namespace UD_WForms
         {
             MenuStrip mainMenu = new MenuStrip();
 
-            // Меню Файл
+            // Меню Файл с отображением БД в подменю
             ToolStripMenuItem fileMenu = new ToolStripMenuItem("Файл");
-            ToolStripMenuItem settingsItem = new ToolStripMenuItem("Настройки БД");
+
+            // Пункт меню с текущей БД
+            ToolStripMenuItem currentDbItem = new ToolStripMenuItem($"Текущая БД: {_databaseName}");
+            currentDbItem.Enabled = false;
+            currentDbItem.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Italic);
+
+            ToolStripMenuItem settingsItem = new ToolStripMenuItem("Настройки подключения БД");
             settingsItem.Click += (s, e) => ShowConnectionSettings();
+
             ToolStripMenuItem exitItem = new ToolStripMenuItem("Выход");
             exitItem.Click += (s, e) => Application.Exit();
+
+            fileMenu.DropDownItems.Add(currentDbItem);
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add(settingsItem);
             fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add(exitItem);
@@ -230,9 +273,49 @@ namespace UD_WForms
         // Метод обновления статус-бара
         public void UpdateStatus(string message)
         {
-            if (_statusStrip.Items.Count > 0)
+            if (_statusLabel != null)
             {
-                _statusStrip.Items[0].Text = message;
+                _statusLabel.Text = message;
+            }
+        }
+
+        // Обновление информации о БД в интерфейсе
+        private void UpdateDatabaseInfoInUI()
+        {
+            // Обновляем заголовок формы
+            this.Text = $"Авиакасса - Система управления билетами (БД: {_databaseName})";
+
+            // Обновляем приветственный текст
+            _welcomeLabel.Text = $"Добро пожаловать в систему авиакассы!\n\n" +
+                               $"🛢️ Текущая база данных: <b>{_databaseName}</b>\n\n" +
+                               "Для работы с системой выберите соответствующий раздел в меню.\n\n" +
+                               "Доступные модули:\n" +
+                               "• 📋 Билеты - управление продажей билетов\n" +
+                               "• 👥 Пассажиры - база данных пассажиров\n" +
+                               "• ✈️ Рейсы - расписание и управление рейсами\n" +
+                               "• 🏢 Аэропорты - справочник аэропортов";
+
+            // Обновляем статус бар
+            ToolStripStatusLabel dbLabel = _statusStrip.Items[0] as ToolStripStatusLabel;
+            if (dbLabel != null)
+            {
+                dbLabel.Text = $"🛢️ БД: {_databaseName}";
+            }
+
+            // Обновляем меню
+            UpdateMenuDatabaseInfo();
+        }
+
+        // Обновление информации о БД в меню
+        private void UpdateMenuDatabaseInfo()
+        {
+            if (_mainMenu.Items.Count > 0 && _mainMenu.Items[0] is ToolStripMenuItem fileMenu)
+            {
+                // Обновляем первый пункт меню (текущая БД)
+                if (fileMenu.DropDownItems.Count > 0)
+                {
+                    fileMenu.DropDownItems[0].Text = $"Текущая БД: {_databaseName}";
+                }
             }
         }
 
@@ -241,41 +324,46 @@ namespace UD_WForms
             var settingsForm = new ConnectionSettingsForm();
             if (settingsForm.ShowDialog() == DialogResult.OK)
             {
-                // Обновляем имя БД, если оно изменилось
-                if (!string.IsNullOrEmpty(settingsForm.DatabaseName) && settingsForm.DatabaseName != _databaseName)
+                // Получаем новое имя БД
+                string newDatabaseName = settingsForm.DatabaseName;
+                if (!string.IsNullOrEmpty(newDatabaseName) && newDatabaseName != _databaseName)
                 {
-                    _databaseName = settingsForm.DatabaseName;
+                    _databaseName = newDatabaseName;
 
-                    // Обновляем заголовок формы
-                    this.Text = $"Авиакасса - Система управления билетами [{_databaseName}]";
-
-                    // Обновляем статус бар
-                    UpdateStatus($"Готов к работе (БД: {_databaseName})");
-
-                    // Обновляем приветственный текст
-                    _welcomeLabel.Text = _welcomeLabel.Text.Replace($"Текущая база данных: {_databaseName}",
-                        $"Текущая база данных: {_databaseName}");
+                    // Обновляем интерфейс
+                    UpdateDatabaseInfoInUI();
 
                     // Переинициализируем сервисы с новой БД
                     InitializeServices();
+
+                    MessageBox.Show($"Переключение на базу данных '{_databaseName}' выполнено успешно!", "Информация",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (newDatabaseName == _databaseName)
+                {
+                    // Если БД не изменилась, просто обновляем статус
+                    UpdateStatus($"Подключено к БД: {_databaseName}");
                 }
             }
         }
+
         private void InitializeServices()
         {
             try
             {
+                UpdateStatus($"Инициализация сервисов для БД: {_databaseName}...");
+
                 // Перерегистрируем сервисы с новой БД
                 ServiceLocator.Register<IPassengerService>(new PassengerService());
                 ServiceLocator.Register<ITicketService>(new TicketService());
                 ServiceLocator.Register<IFlightService>(new FlightService());
                 ServiceLocator.Register<IAirportService>(new AirportService());
 
-                MessageBox.Show($"Сервисы переинициализированы для базы данных '{_databaseName}'", "Информация",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                UpdateStatus($"Сервисы инициализированы для БД: {_databaseName}");
             }
             catch (Exception ex)
             {
+                UpdateStatus($"Ошибка инициализации сервисов");
                 MessageBox.Show($"Ошибка инициализации сервисов: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -283,20 +371,28 @@ namespace UD_WForms
 
         private void ShowTicketsForm()
         {
+            UpdateStatus($"Открытие формы билетов (БД: {_databaseName})...");
             var ticketsForm = new TicketsForm();
+            ticketsForm.Text = $"Управление билетами - {_databaseName}";
             ticketsForm.Show();
+            UpdateStatus($"Форма билетов открыта");
         }
 
         private void ShowPassengersForm()
         {
+            UpdateStatus($"Открытие формы пассажиров (БД: {_databaseName})...");
             var passengersForm = new PassengersForm();
+            passengersForm.Text = $"Управление пассажирами - {_databaseName}";
             passengersForm.Show();
+            UpdateStatus($"Форма пассажиров открыта");
         }
 
         private void ShowFlightsForm()
         {
             try
             {
+                UpdateStatus($"Открытие формы рейсов (БД: {_databaseName})...");
+
                 if (!ServiceLocator.IsRegistered<IFlightService>() || !ServiceLocator.IsRegistered<IAirportService>())
                 {
                     MessageBox.Show("Не все необходимые сервисы зарегистрированы", "Ошибка",
@@ -305,16 +401,19 @@ namespace UD_WForms
                 }
 
                 var flightsForm = new FlightsForm();
+                flightsForm.Text = $"Управление рейсами - {_databaseName}";
                 flightsForm.WindowState = FormWindowState.Maximized;
                 flightsForm.Show();
 
                 if (flightsForm.IsHandleCreated)
                 {
-                    Console.WriteLine("Форма рейсов успешно создана");
+                    UpdateStatus($"Форма рейсов открыта");
+                    Console.WriteLine($"Форма рейсов успешно создана для БД: {_databaseName}");
                 }
             }
             catch (Exception ex)
             {
+                UpdateStatus($"Ошибка открытия формы рейсов");
                 MessageBox.Show($"Ошибка открытия формы рейсов: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -322,14 +421,19 @@ namespace UD_WForms
 
         private void ShowAirportsForm()
         {
+            UpdateStatus($"Открытие формы аэропортов (БД: {_databaseName})...");
             AirportsForm airportsForm = new AirportsForm();
+            airportsForm.Text = $"Управление аэропортами - {_databaseName}";
             airportsForm.Show();
+            UpdateStatus($"Форма аэропортов открыта");
         }
 
         private void ShowAddFlightForm()
         {
             try
             {
+                UpdateStatus($"Создание нового рейса (БД: {_databaseName})...");
+
                 var flightService = ServiceLocator.GetService<IFlightService>();
                 var airportService = ServiceLocator.GetService<IAirportService>();
                 using (var form = new FlightForm(null, flightService, airportService))
@@ -339,9 +443,12 @@ namespace UD_WForms
                         RefreshAllData();
                     }
                 }
+
+                UpdateStatus($"Новый рейс создан");
             }
             catch (Exception ex)
             {
+                UpdateStatus($"Ошибка создания рейса");
                 MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
@@ -354,7 +461,8 @@ namespace UD_WForms
                 childForm.Activate();
             }
 
-            MessageBox.Show("Данные обновлены", "Обновление",
+            UpdateStatus($"Данные обновлены в БД: {_databaseName}");
+            MessageBox.Show($"Данные обновлены в базе данных '{_databaseName}'", "Обновление",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
